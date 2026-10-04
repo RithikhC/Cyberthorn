@@ -13,3 +13,4 @@
 | Daytime attempt (14:00), 60% | 925,208 | 49.88 | 0 | 0 | 49.93 | 0 | 0 | 2 s | 62% |
 | BMS overdrive (110%) | 925,208 | 49.95 | 0 | 0 | 49.95 | 0 | 0 | 7 s | 0% |
 | FALSE-ALARM TEST: legit off-peak tariff surge | 0 | 49.95 | 0 | 0 | 49.95 | 0 | 0 | – | – |
+| WORST CASE: 2050, 100% compromised, only 30% of chargers enforceable | 3,297,700 | 48.37 | 10,656 | 7 | 48.71 | 4,262 | 6 | 2 s | 41% |

@@ -26,7 +26,7 @@
   tabBtns.forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
 
   /* ----------------------------------------------------------- presets */
-  const BASE = { year: 2040, hour: 1.5, scope: 'national', region: 'DXB', pct: 0.6, cls: 'all', a: 0.95, style: 'step', poisoned: false, benign: false };
+  const BASE = { year: 2040, hour: 1.5, scope: 'national', region: 'DXB', pct: 0.6, cls: 'all', a: 0.95, style: 'step', poisoned: false, benign: false, enforceProb: 0.95 };
   const PRESETS = [
     { name: 'Nationwide overnight strike', cfg: {} },
     { name: 'Local district overload — Dubai', cfg: { scope: 'local', region: 'DXB', pct: 0.7 } },
@@ -35,12 +35,13 @@
     { name: 'Daytime attempt (cars not plugged in)', cfg: { hour: 14 } },
     { name: 'BMS overdrive — attacker overreaches', cfg: { a: 1.1 } },
     { name: 'False-alarm test: legit off-peak surge', cfg: { benign: true } },
+    { name: 'WORST CASE: 2050, 100% hacked, only 30% enforceable', cfg: { year: 2050, pct: 1, enforceProb: 0.3 } },
   ];
   const P = $('preset');
   PRESETS.forEach((p, i) => P.add(new Option(p.name, i)));
   G.REGIONS.forEach((r) => $('region').add(new Option(r.name, r.id)));
 
-  const ctl = { year: $('year'), hour: $('hour'), scope: $('scope'), region: $('region'), pct: $('pct'), cls: $('cls'), a: $('a'), style: $('style'), poisoned: $('poisoned'), benign: $('benign') };
+  const ctl = { year: $('year'), hour: $('hour'), scope: $('scope'), region: $('region'), pct: $('pct'), cls: $('cls'), a: $('a'), style: $('style'), enforceProb: $('enf'), poisoned: $('poisoned'), benign: $('benign') };
   function setCtl(cfg) {
     Object.keys(ctl).forEach((k) => { if (ctl[k].type === 'checkbox') ctl[k].checked = !!cfg[k]; else ctl[k].value = cfg[k]; });
     labels();
@@ -52,7 +53,7 @@
   }
   function labels() {
     $('lbYear').textContent = ctl.year.value; $('lbHour').textContent = hh(+ctl.hour.value);
-    $('lbPct').textContent = Math.round(ctl.pct.value * 100) + '%'; $('lbA').textContent = (+ctl.a.value * 100).toFixed(0) + '%';
+    $('lbPct').textContent = Math.round(ctl.pct.value * 100) + '%'; $('lbA').textContent = (+ctl.a.value * 100).toFixed(0) + '%'; $('lbEnf').textContent = Math.round(ctl.enforceProb.value * 100) + '%';
     $('aNote').textContent = +ctl.a.value > 1 ? '⚠ Above 100% the car’s BMS opens its contactor and the car drops off — the attack defeats itself.' : 'Attackers stay just under the BMS limit so cars do not cut off.';
   }
   P.addEventListener('change', () => { setCtl(Object.assign({}, BASE, PRESETS[+P.value].cfg)); resetSim(); });
@@ -337,6 +338,7 @@
     ['Daytime attempt (14:00, cars unplugged) — 60%', { hour: 14 }],
     ['BMS overdrive (setpoint 110%) — attack defeats itself', { a: 1.1 }],
     ['FALSE-ALARM TEST: legit off-peak tariff surge', { benign: true }],
+    ['WORST CASE: 2050, 100% compromised, only 30% of chargers enforceable', { year: 2050, pct: 1, enforceProb: 0.3 }],
   ];
   $('btnBench').addEventListener('click', async () => {
     const btn = $('btnBench'); btn.disabled = true;

@@ -49,6 +49,7 @@
       <div class="note" id="aNote"></div>
       <label>Attack style</label>
       <select id="style"><option value="step">Synchronised step (botnet fires at once)</option><option value="ramp">Stealth ramp (90 s creep)</option></select>
+      <label>Gateway coverage — share of chargers GridGuard can enforce on <b id="lbEnf"></b></label><input type="range" id="enf" min="0.1" max="1" step="0.05">
       <label class="chk"><input type="checkbox" id="poisoned"> Backend (CSMS) poisoned — attacker's setpoints look authorised</label>
       <label class="chk"><input type="checkbox" id="benign"> Benign test: legit off-peak tariff surge (no attack)</label>
       <div class="row">
