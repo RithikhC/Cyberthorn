@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridGuard EV — Cyberthorn</title>
+<meta name="description" content="Cyber-physical intrusion detection and automated mitigation that protects the power grid from compromised EV chargers.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 4 7v8c0 8 5 13 12 15 7-2 12-7 12-15V7z' fill='%2336d6c3'/%3E%3Cpath d='M17 8l-6 10h4l-1 6 6-10h-4z' fill='%230a0f1a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32"><path d="M16 2 4 7v8c0 8 5 13 12 15 7-2 12-7 12-15V7z" fill="#36d6c3"/><path d="M17 8l-6 10h4l-1 6 6-10h-4z" fill="#0a0f1a"/></svg>
+    <div>GridGuard EV<small>Cyberthorn · Cybersecurity &amp; Critical Infrastructure Protection</small></div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="live" class="on">Live cyber-range</button>
+    <button data-tab="math">How many chargers?</button>
+    <button data-tab="growth">EV growth</button>
+    <button data-tab="homevs">Home vs stations</button>
+    <button data-tab="bench">Benchmarks</button>
+    <button data-tab="arch">Architecture</button>
+  </nav>
+</header>
+
+<main>
+<!-- ============================================================ LIVE -->
+<section class="tab on" id="tab-live">
+  <div class="banner" id="banner">
+    <div class="t" id="clock">T+00:00</div>
+    <div class="msg" id="bannerMsg">Pick a scenario and press <b>Launch attack</b>. The same attack runs twice in parallel: once on an unprotected grid, once with GridGuard.</div>
+    <div class="seg" id="viewSeg" title="Which twin the map shows"><button data-v="on" class="on">Map: with GridGuard</button><button data-v="off">Map: without</button></div>
+  </div>
+  <div class="live">
+    <!-- controls -->
+    <div class="card ctl">
+      <h3>Scenario</h3>
+      <select id="preset"></select>
+      <label>Year <b id="lbYear"></b></label><input type="range" id="year" min="2025" max="2050" step="1">
+      <label>Time of day <b id="lbHour"></b></label><input type="range" id="hour" min="0" max="23.5" step="0.5">
+      <label>Attack scope</label>
+      <select id="scope"><option value="national">Nationwide</option><option value="region">One emirate</option><option value="local">Local — EV-dense district feeder</option></select>
+      <label>Target emirate</label><select id="region"></select>
+      <label>Compromised chargers <b id="lbPct"></b></label><input type="range" id="pct" min="0.05" max="1" step="0.05">
+      <label>Device class targeted</label>
+      <select id="cls"><option value="all">All chargers</option><option value="home">Home units only</option><option value="public">Public stations only</option></select>
+      <label>Attack setpoint (× what the car's BMS accepts) <b id="lbA"></b></label><input type="range" id="a" min="0.5" max="1.15" step="0.01">
+      <div class="note" id="aNote"></div>
+      <label>Attack style</label>
+      <select id="style"><option value="step">Synchronised step (botnet fires at once)</option><option value="ramp">Stealth ramp (90 s creep)</option></select>
+      <label class="chk"><input type="checkbox" id="poisoned"> Backend (CSMS) poisoned — attacker's setpoints look authorised</label>
+      <label class="chk"><input type="checkbox" id="benign"> Benign test: legit off-peak tariff surge (no attack)</label>
+      <div class="row">
+        <button class="btn danger" id="btnRun">▶ Launch attack</button>
+        <button class="btn" id="btnPause">⏸ Pause</button>
+        <button class="btn" id="btnSkip">⏭ Skip to end</button>
+      </div>
+      <div class="row" style="align-items:center"><span class="note">Speed</span>
+        <div class="seg" id="speedSeg"><button data-s="1">1×</button><button data-s="4" class="on">4×</button><button data-s="12">12×</button><button data-s="30">30×</button></div>
+      </div>
+      <p class="note" style="margin-top:12px">Scenario length 5 minutes of grid time. Everything is simulated — no real device or network is touched.</p>
+    </div>
+
+    <!-- centre -->
+    <div>
+      <div class="kpis" id="kpis"></div>
+      <div class="card">
+        <canvas id="map" width="900" height="430"></canvas>
+        <div class="legend">
+          <span><i style="background:#2f8f86"></i>charging normally</span><span><i style="background:#ff5468"></i>compromised, overdriving</span>
+          <span><i style="background:#ffb84a"></i>throttled by GridGuard</span><span><i style="background:#b18cff"></i>quarantined (safe-mode)</span>
+          <span><i style="background:#555"></i>de-energised by relay trip</span><span class="note">schematic map — dots are charger clusters</span>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Event log</h3>
+        <div class="logs"><div><div class="note">Without GridGuard</div><div class="log" id="logOff"></div></div><div><div class="note">With GridGuard</div><div class="log" id="logOn"></div></div></div>
+      </div>
+    </div>
+
+    <!-- right -->
+    <div class="col-r">
+      <div class="card"><h3>Grid frequency</h3><canvas id="chF" class="chart tall"></canvas></div>
+      <div class="card" style="margin-top:14px"><h3>Charging load above plan (MW)</h3><canvas id="chL" class="chart"></canvas></div>
+      <div class="card" style="margin-top:14px"><h3>GridGuard risk score (worst feeder)</h3><canvas id="chR" class="chart" style="height:150px"></canvas></div>
+      <div class="card" style="margin-top:14px"><h3>Feeder defence state</h3><div class="chips" id="chips"></div>
+        <div class="legend"><span><i style="background:#1d4d3a"></i>normal</span><span><i style="background:var(--warn)"></i>watch</span><span><i style="background:var(--bad)"></i>throttle</span><span><i style="background:var(--purple)"></i>isolate</span><span><i style="background:var(--blue)"></i>recover</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ MATH -->
+<section class="tab" id="tab-math">
+  <h2>How many charging stations must be compromised?</h2>
+  <p class="lead">An attacker has to push the grid past its spinning reserve before frequency collapses into load-shedding. We sweep the fraction of compromised chargers against a single-area frequency-response model (inertia, governor droop, reserve, under-frequency load shedding) and count only chargers that are <b>actually plugged in</b> with a car that will accept more current.</p>
+  <div class="grid g2">
+    <div class="card ctl">
+      <h3>Assumptions</h3>
+      <label>Year <b id="mYearL"></b></label><input type="range" id="mYear" min="2025" max="2050" step="1">
+      <label>Time of day <b id="mHourL"></b></label><input type="range" id="mHour" min="0" max="23.5" step="0.5">
+      <label>Attack setpoint (× BMS limit) <b id="mAL"></b></label><input type="range" id="mA" min="0.5" max="1" step="0.01">
+      <label class="chk"><input type="checkbox" id="mAccel"> Accelerated EV adoption (faster than UAE policy targets)</label>
+      <div id="mCards" class="grid g2" style="margin-top:14px"></div>
+    </div>
+    <div class="card"><h3>Frequency nadir vs share of chargers compromised</h3><canvas id="chNadir" class="chart tall" style="height:300px"></canvas><div class="note" id="nadirNote"></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Share of chargers needed for first load-shedding, by year</h3><canvas id="chNeed" class="chart tall"></canvas><div class="note">Night = 01:30 (cars plugged in at home). Day = 14:00 (cars on the road, grid at peak so more generation is online). The absolute number of chargers needed stays roughly constant (each connected charger adds a few kW) — the <i>share</i> falls as the fleet grows.</div></div>
+    <div class="card"><h3>Local attack: share of an EV-dense district needed to overload its feeder</h3><table class="t" id="localTbl"></table><div class="note">District feeders are rated for diversified demand; synchronising chargers removes the diversity. Dense new-build communities are the weak points.</div></div>
+  </div>
+  <div class="callout warn" id="mTake"></div>
+</section>
+
+<!-- ============================================================ GROWTH -->
+<section class="tab" id="tab-growth">
+  <h2>EV adoption → more chargers → more attack surface</h2>
+  <p class="lead">Policy anchors: UAE National EV Policy targets ≈10% of the fleet by 2030 and 50% by 2050; Dubai closed 2025 with 47,944 registered EVs and ≈1,860 DEWA public charging points; ADNOC &amp; TAQA target 70,000 charge points in Abu Dhabi by 2030. Globally, the IEA reports EVs at &gt;20% of new-car sales in 2024 and projects &gt;40% by 2030 on current policies. The fleet curve below interpolates those anchors; it is a model, not a forecast.</p>
+  <div class="grid g2">
+    <div class="card"><h3>UAE electric vehicles (millions)</h3><canvas id="chEv" class="chart tall"></canvas></div>
+    <div class="card"><h3>UAE chargers by type (thousands)</h3><canvas id="chChg" class="chart tall"></canvas></div>
+    <div class="card"><h3>Attackable night-time load vs grid reserve (MW)</h3><canvas id="chExp" class="chart tall"></canvas><div class="note" id="expNote"></div></div>
+    <div class="card"><h3>Global EV share of new-car sales (IEA)</h3><canvas id="chGlob" class="chart tall"></canvas><div class="note">2020–2024 reported; 2025 ≈ "more than one-quarter" and 2030 ">40%" are IEA projections plotted as lower bounds.</div></div>
+  </div>
+  <div class="callout" id="gTake"></div>
+</section>
+
+<!-- ============================================================ HOME VS -->
+<section class="tab" id="tab-homevs">
+  <h2>Home charging units vs public charging stations: which is the better target?</h2>
+  <p class="lead">Attackers care about three things: megawatts they can move, how many devices they must compromise to get there, and whether those devices are plugged in when the attack happens. The model quantifies the first two from the simulated fleet.</p>
+  <div class="card ctl" style="margin-bottom:14px"><div class="row" style="margin:0;align-items:center;gap:20px"><div style="min-width:240px"><label>Year <b id="hYearL"></b></label><input type="range" id="hYear" min="2025" max="2050" step="1"></div><div style="min-width:240px"><label>Time of day <b id="hHourL"></b></label><input type="range" id="hHour" min="0" max="23.5" step="0.5"></div></div></div>
+  <div class="grid g2">
+    <div class="card"><h3>Attackable load by device class (MW)</h3><canvas id="chHV" style="height:150px"></canvas><div class="note" id="hvNote"></div></div>
+    <div class="card"><h3>Devices that must be compromised to cause load-shedding on their own</h3><canvas id="chHN" style="height:150px"></canvas><div class="note">Bar shown only if that class alone can reach the threshold.</div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><table class="t" id="hvTbl"></table></div>
+  <div class="callout" id="hvTake"></div>
+</section>
+
+<!-- ============================================================ BENCH -->
+<section class="tab" id="tab-bench">
+  <h2>Benchmarks — attack scenarios with and without GridGuard</h2>
+  <p class="lead">Every row runs the identical attack twice on an identical simulated fleet (seeded), once with the defence disabled. Includes a benign tariff-surge false-alarm test and a hard case where the charger backend itself is poisoned.</p>
+  <div class="row" style="margin:0 0 12px"><button class="btn primary" id="btnBench">Run benchmark suite</button><span class="note" id="benchStatus" style="align-self:center;margin-left:10px"></span></div>
+  <div class="card" style="overflow:auto"><table class="t" id="benchTbl"></table></div>
+  <div class="callout" id="benchTake" style="display:none"></div>
+</section>
+
+<!-- ============================================================ ARCH -->
+<section class="tab" id="tab-arch">
+  <h2>GridGuard architecture</h2>
+  <p class="lead">We do not try to stop every exploit — chargers will be hacked. GridGuard assumes compromise and protects the grid physically: three independent detection layers feed a staged mitigation that throttles abnormal charging <b>before the feeder relay or the under-frequency scheme trips</b>.</p>
+  <div class="card arch" id="archSvg"></div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card"><h3>1 · Physical layer (trusts nothing)</h3><p class="note">Feeder-level meter and charger-group sub-meter: ramp rate, CUSUM drift against a slow forecast, projected overload. Independent of the charger firmware and the backend, so it still works if both are owned.</p></div>
+    <div class="card"><h3>2 · Cyber layer</h3><p class="note">Compares each charger's <i>requested</i> power with the schedule the charging-station management system (CSMS) authorised, plus a synchrony index: how many chargers stepped up within the same few seconds. Benign tariff surges pass; attacks do not.</p></div>
+    <div class="card"><h3>3 · Coordination layer</h3><p class="note">A national coordinator correlates feeder alerts and PMU frequency / rate-of-change. If several feeders trip into THROTTLE together, the rest are pre-empted — attacks on many emirates at once are stopped before they sum to a grid event.</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Staged mitigation</h3>
+      <table class="t"><tr><th>State</th><th>Trigger</th><th>Action</th></tr>
+      <tr><td>WATCH</td><td>risk ≥ 30%</td><td>Raise telemetry rate, arm fast-path</td></tr>
+      <tr><td>THROTTLE</td><td>risk ≥ 55% for 2 s, or projected overload</td><td>Force deviating chargers back to authorised profile; dynamic headroom clamp on the feeder</td></tr>
+      <tr><td>ISOLATE</td><td>non-compliance persists</td><td>Quarantine offenders at 6 A safe-mode (cars still charge slowly), alert operator</td></tr>
+      <tr><td>RECOVER</td><td>calm for 20 s</td><td>Staged release (5%/s) with hysteresis; re-throttle if surge returns</td></tr></table></div>
+    <div class="card"><h3>Secure IoT / SCADA integration</h3>
+      <table class="t"><tr><th>Interface</th><th>Use</th></tr>
+      <tr><td>OCPP 1.6J / 2.0.1 (TLS 1.3, mTLS)</td><td>Authorised profiles, MeterValues, SetChargingProfile limits</td></tr>
+      <tr><td>IEC 61850 / Modbus-TCP / DNP3</td><td>Substation RTU: feeder load, breaker status</td></tr>
+      <tr><td>IEEE C37.118 (PMU)</td><td>Frequency and RoCoF at the coordinator</td></tr>
+      <tr><td>MQTT over TLS + signed commands</td><td>Gateway ↔ edge controller; enforcement is local, not cloud-dependent</td></tr></table></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Hardware prototype (next phase)</h3><ul class="tight"><li>ESP32 gateway in series with the charger: current transformer + voltage sense</li><li>Independent J1772/IEC 61851 pilot-PWM limiter and contactor — firmware on the charger cannot override it</li><li>Signed command channel and a local fail-safe: if the gateway loses contact it clamps to a safe default rate</li><li>The software here is the control logic and test-bed that the gateway firmware will mirror</li></ul></div>
+    <div class="card"><h3>Alignment &amp; scope</h3><ul class="tight"><li>UAE National Cybersecurity Strategy: critical-infrastructure resilience, detection &amp; response, secure IoT</li><li>Theme fit: CPS intrusion detection · automated mitigation · secure IoT/SCADA integration</li><li>Out of scope by design: how chargers are hacked — we protect the grid <i>given</i> compromise</li><li>Limits: single-area frequency model, illustrative parameters (see docs/MODEL.md); real deployment needs utility data and testing on a hardware-in-the-loop bench</li></ul></div>
+  </div>
+</section>
+</main>
+<footer>GridGuard EV · Cyberthorn hackathon prototype · simulation only. Parameters are illustrative; sources and assumptions in docs/MODEL.md.</footer>
+
+<script src="js/engine.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
