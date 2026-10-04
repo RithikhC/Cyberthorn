@@ -27,7 +27,7 @@
           xFmt,yFmt, xLabel, yLabel, legend:true, logY } */
   function line(canvas, o) {
     const { ctx, w, h } = setup(canvas);
-    const m = { l: 52, r: 14, t: o.legend === false ? 10 : 24, b: 30 };
+    const m = { l: 52, r: 14, t: o.legend === false ? 10 : 24, b: o.xLabel ? 44 : 30 };
     const pw = w - m.l - m.r, ph = h - m.t - m.b;
     let xMin = o.xMin, xMax = o.xMax, yMin = o.yMin, yMax = o.yMax;
     const all = o.series.flatMap((s) => s.data);
@@ -50,6 +50,7 @@
       const x = X(v); ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
       ctx.fillText(o.xFmt ? o.xFmt(v) : String(v), x, m.t + ph + 6);
     });
+    if (o.xLabel) { ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(o.xLabel, m.l + pw / 2, h - 3); }
     if (o.yLabel) { ctx.save(); ctx.translate(12, m.t + ph / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText(o.yLabel, 0, 0); ctx.restore(); }
     // reference lines
     ctx.save(); ctx.beginPath(); ctx.rect(m.l, m.t, pw, ph); ctx.clip();

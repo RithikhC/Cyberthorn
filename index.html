@@ -84,7 +84,7 @@
     <div class="col-r">
       <div class="card"><h3>Grid frequency</h3><canvas id="chF" class="chart tall"></canvas></div>
       <div class="card" style="margin-top:14px"><h3>Charging load above plan (MW)</h3><canvas id="chL" class="chart"></canvas></div>
-      <div class="card" style="margin-top:14px"><h3>GridGuard risk score (worst feeder)</h3><canvas id="chR" class="chart" style="height:150px"></canvas></div>
+      <div class="card" style="margin-top:14px"><h3>GridGuard risk score (worst feeder)</h3><canvas id="chR" class="chart" style="height:180px"></canvas></div>
       <div class="card" style="margin-top:14px"><h3>Feeder defence state</h3><div class="chips" id="chips"></div>
         <div class="legend"><span><i style="background:#1d4d3a"></i>normal</span><span><i style="background:var(--warn)"></i>watch</span><span><i style="background:var(--bad)"></i>throttle</span><span><i style="background:var(--purple)"></i>isolate</span><span><i style="background:var(--blue)"></i>recover</span></div>
       </div>
@@ -133,8 +133,8 @@
   <p class="lead">Attackers care about three things: megawatts they can move, how many devices they must compromise to get there, and whether those devices are plugged in when the attack happens. The model quantifies the first two from the simulated fleet.</p>
   <div class="card ctl" style="margin-bottom:14px"><div class="row" style="margin:0;align-items:center;gap:20px"><div style="min-width:240px"><label>Year <b id="hYearL"></b></label><input type="range" id="hYear" min="2025" max="2050" step="1"></div><div style="min-width:240px"><label>Time of day <b id="hHourL"></b></label><input type="range" id="hHour" min="0" max="23.5" step="0.5"></div></div></div>
   <div class="grid g2">
-    <div class="card"><h3>Attackable load by device class (MW)</h3><canvas id="chHV" style="height:150px"></canvas><div class="note" id="hvNote"></div></div>
-    <div class="card"><h3>Devices that must be compromised to cause load-shedding on their own</h3><canvas id="chHN" style="height:150px"></canvas><div class="note">Bar shown only if that class alone can reach the threshold.</div></div>
+    <div class="card"><h3>Attackable load by device class (MW)</h3><canvas id="chHV" style="height:180px"></canvas><div class="note" id="hvNote"></div></div>
+    <div class="card"><h3>Devices that must be compromised to cause load-shedding on their own</h3><canvas id="chHN" style="height:180px"></canvas><div class="note">Bar shown only if that class alone can reach the threshold.</div></div>
   </div>
   <div class="card" style="margin-top:14px"><table class="t" id="hvTbl"></table></div>
   <div class="callout" id="hvTake"></div>

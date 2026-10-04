@@ -209,16 +209,16 @@
     const tA = S.cfg.tAttack, vl = S.cfg.benign ? [{ x: tA, label: 'surge', color: COL.amber }] : [{ x: tA, label: 'attack', color: COL.off }];
     const pts = (sim, key) => sim.hist.t.map((t, i) => [t, sim.hist[key][i]]);
     C.line($('chF'), {
-      xMin: 0, xMax: DURATION, yMin: 48.4, yMax: 50.15, yFmt: (v) => v.toFixed(1), xFmt: xf, yLabel: 'Hz',
+      xMin: 0, xMax: DURATION, yMin: 48.4, yMax: 50.15, yFmt: (v) => v.toFixed(1), xFmt: xf, yLabel: 'Hz', xLabel: 'time since scenario start (s)',
       series: [{ label: 'without GridGuard', color: COL.off, data: pts(S.off, 'f') }, { label: 'with GridGuard', color: COL.on, data: pts(S.on, 'f') }],
       hlines: [{ y: 50, color: '#4b5d82' }, { y: 49.0, label: 'under-frequency load shedding (49.0 Hz)', color: COL.amber }, { y: 48.4, label: 'stage 4', color: '#c44' }], vlines: vl,
     });
     const ymax = Math.max(500, ...S.off.hist.dEv, ...S.on.hist.dEv) * 1.1;
     C.line($('chL'), {
-      xMin: 0, xMax: DURATION, yMin: 0, yMax: ymax, yFmt: (v) => n0(v), xFmt: xf, yLabel: 'MW', series: [{ label: 'without', color: COL.off, data: pts(S.off, 'dEv'), fill: true }, { label: 'with', color: COL.on, data: pts(S.on, 'dEv'), fill: true }], vlines: vl,
+      xMin: 0, xMax: DURATION, yMin: 0, yMax: ymax, yFmt: (v) => n0(v), xFmt: xf, yLabel: 'MW', xLabel: 'time since scenario start (s)', series: [{ label: 'without', color: COL.off, data: pts(S.off, 'dEv'), fill: true }, { label: 'with', color: COL.on, data: pts(S.on, 'dEv'), fill: true }], vlines: vl,
     });
     C.line($('chR'), {
-      xMin: 0, xMax: DURATION, yMin: 0, yMax: 1, yFmt: (v) => v.toFixed(1), xFmt: xf, legend: false,
+      xMin: 0, xMax: DURATION, yMin: 0, yMax: 1, yFmt: (v) => v.toFixed(1), xFmt: xf, legend: false, yLabel: 'risk score (0–1)', xLabel: 'time since scenario start (s)',
       series: [{ color: COL.accent, data: pts(S.on, 'risk') }], hlines: [{ y: 0.3, label: 'WATCH', color: COL.amber }, { y: 0.55, label: 'THROTTLE', color: COL.off }], vlines: vl,
     });
   }
