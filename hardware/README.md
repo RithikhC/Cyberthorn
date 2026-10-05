@@ -1,4 +1,4 @@
-# GridGuard gateway — hardware prototype (next phase)
+# SENTINEL gateway — hardware prototype (next phase)
 
 Independent enforcement point in series with a charger, so a compromised charger cannot ignore throttling.
 

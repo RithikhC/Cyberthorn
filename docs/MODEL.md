@@ -25,7 +25,7 @@ Agents are clusters of real chargers (weight *w*). Classes: home AC (7.4/11 kW),
 ## EV adoption
 Logit-space interpolation between anchors: 2% (2025), 10% (2030), 30% (2040), 50% (2050) of the vehicle parc (4.5 M in 2025, +3%/yr). Public chargers per EV rise from 0.02 to 0.10; 60% of EVs have a home unit. "Accelerated" adds +0.7 to the logit.
 
-## GridGuard
+## SENTINEL
 1 Hz control loop per feeder. Signals: EV-load ramp, CUSUM against the trusted schedule (or a slow forecast if the backend is poisoned), deviation of requested vs authorised power, synchrony index.
 Risk = 0.35·dev + 0.25·sync + 0.25·ramp + 0.15·cusum (CUSUM-only evidence can reach 0.70).
 WATCH ≥ 0.30; THROTTLE ≥ 0.55 for 2 s (1 s if ≥ 0.75) or projected overload; ISOLATE after 5 s of non-compliance; RECOVER after 20 s calm; staged release 5%/s.

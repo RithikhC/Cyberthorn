@@ -6,7 +6,7 @@ const t = (name, fn) => { try { fn(); pass++; console.log('  ok  ', name); } cat
 const run = (cfg, s = 300) => G.runTwins(cfg, s);
 const BASE = { year: 2040, hour: 1.5, pct: 0.6 };
 
-console.log('GridGuard EV engine tests');
+console.log('SENTINEL engine tests');
 t('EV adoption matches UAE policy anchors (≈10% by 2030, 50% by 2050)', () => {
   assert(Math.abs(G.evShareOfFleet(2030) - 0.10) < 0.005);
   assert(Math.abs(G.evShareOfFleet(2050) - 0.50) < 0.005);
@@ -20,17 +20,17 @@ t('quiet grid stays at 50 Hz (±0.1) with no attack', () => {
   const s = new G.Simulation({ year: 2040, hour: 1.5, benign: true, defense: false, tAttack: 9999 }).run(120);
   assert(Math.abs(s.fHz - 50) < 0.1);
 });
-t('nationwide overnight attack causes load shedding without GridGuard', () => {
+t('nationwide overnight attack causes load shedding without SENTINEL', () => {
   const { off } = run(BASE); const a = off.summary();
   assert(a.shedMW > 0, 'expected UFLS');
   assert(a.minF < 49.0);
 });
-t('GridGuard prevents load shedding and feeder trips in the same attack', () => {
+t('SENTINEL prevents load shedding and feeder trips in the same attack', () => {
   const { on } = run(BASE); const b = on.summary();
   assert.strictEqual(b.shedMW, 0); assert.strictEqual(b.feederTrips, 0);
   assert(b.minF > 49.5, 'nadir ' + b.minF);
 });
-t('GridGuard throttles within 6 s (well before relay trip time)', () => {
+t('SENTINEL throttles within 6 s (well before relay trip time)', () => {
   const b = run(BASE).on.summary();
   assert(b.detectLatency !== null && b.detectLatency <= 6, 'latency ' + b.detectLatency);
 });

@@ -1,4 +1,4 @@
-/* GridGuard EV — live attack simulation UI */
+/* SENTINEL — live attack simulation UI */
 (function () {
   'use strict';
   const G = window.GG, C = window.Charts;
@@ -100,7 +100,7 @@
     { k: 'Feeders tripped', f: (s) => s.metrics.feederTrips + ' of 14' },
     { k: 'Time to throttle', f: (s) => (s.cfg.defense ? (s.metrics.firstThrottleAt >= 0 && s.metrics.attackStart >= 0 ? (s.metrics.firstThrottleAt - s.metrics.attackStart).toFixed(1) + ' s' : 'not yet') : 'no defence') },
   ];
-  $('kpis').innerHTML = KP.map((p, i) => `<div class="kpi"><div class="k">${p.k}</div><div class="r off"><span>Unprotected</span><b id="kOff${i}"></b></div><div class="r on"><span>GridGuard</span><b id="kOn${i}"></b></div></div>`).join('');
+  $('kpis').innerHTML = KP.map((p, i) => `<div class="kpi"><div class="k">${p.k}</div><div class="r off"><span>Unprotected</span><b id="kOff${i}"></b></div><div class="r on"><span>SENTINEL</span><b id="kOn${i}"></b></div></div>`).join('');
 
   const chips = [];
   (function () {
@@ -115,17 +115,17 @@
     const a = S.off.summary(), b = S.on.summary(), c = S.cfg;
     if (c.benign) {
       return b.throttled || b.quarantined
-        ? ['bad', `<b>False alarm.</b> GridGuard throttled a legitimate surge.`]
-        : ['ok', `<b>No false alarm.</b> The scheduled surge (+${n0(b.peakDeltaMW)} MW) was recognised as legitimate. GridGuard ${b.watched ? 'only moved to watch' : 'stayed normal'}, throttled nothing and quarantined nothing.`];
+        ? ['bad', `<b>False alarm.</b> SENTINEL throttled a legitimate surge.`]
+        : ['ok', `<b>No false alarm.</b> The scheduled surge (+${n0(b.peakDeltaMW)} MW) was recognised as legitimate. SENTINEL ${b.watched ? 'only moved to watch' : 'stayed normal'}, throttled nothing and quarantined nothing.`];
     }
     const harmed = a.shedMW > 0 || a.feederTrips > 0 || a.collapsed;
     if (a.bmsTrips > 0 && !harmed) return ['ok', `<b>The attack defeated itself.</b> Forcing the rate past the battery limit made ${n0(a.bmsTrips)} cars cut off, so no extra load reached the grid.`];
-    if (!harmed) return ['ok', `<b>No real impact on the grid.</b> Unprotected frequency bottomed out at ${a.minF.toFixed(2)} Hz (+${n0(a.peakDeltaMW)} MW). ${b.throttled ? 'GridGuard still throttled it within ' + b.detectLatency + ' s.' : 'Not enough connected load to matter. Try a later year, a larger share or night-time.'}`];
+    if (!harmed) return ['ok', `<b>No real impact on the grid.</b> Unprotected frequency bottomed out at ${a.minF.toFixed(2)} Hz (+${n0(a.peakDeltaMW)} MW). ${b.throttled ? 'SENTINEL still throttled it within ' + b.detectLatency + ' s.' : 'Not enough connected load to matter. Try a later year, a larger share or night-time.'}`];
     const parts = [];
     if (a.shedMW) parts.push(`${n0(a.shedMW)} MW of customers shed (low point ${a.minF.toFixed(2)} Hz)`);
     if (a.feederTrips) parts.push(`${a.feederTrips} feeder breaker${a.feederTrips > 1 ? 's' : ''} tripped (${n0(a.lossMW)} MW blacked out)`);
     const saved = b.shedMW === 0 && b.feederTrips === 0;
-    return [saved ? 'ok' : 'bad', `<b>${saved ? 'Blackout prevented.' : 'Only partly contained.'}</b> Unprotected: ${parts.join(', ')}. With GridGuard: low point ${b.minF.toFixed(2)} Hz, ${n0(b.shedMW)} MW shed, ${b.feederTrips} breakers tripped. Throttle started ${b.detectLatency ?? '?'} s after the attack and cut the surge by ${Math.round((1 - b.peakDeltaMW / Math.max(1, a.peakDeltaMW)) * 100)}%.`];
+    return [saved ? 'ok' : 'bad', `<b>${saved ? 'Blackout prevented.' : 'Only partly contained.'}</b> Unprotected: ${parts.join(', ')}. With SENTINEL: low point ${b.minF.toFixed(2)} Hz, ${n0(b.shedMW)} MW shed, ${b.feederTrips} breakers tripped. Throttle started ${b.detectLatency ?? '?'} s after the attack and cut the surge by ${Math.round((1 - b.peakDeltaMW / Math.max(1, a.peakDeltaMW)) * 100)}%.`];
   }
   function banner() {
     $('clock').textContent = mmss(S.off.t);
@@ -133,8 +133,8 @@
     const c = S.cfg, t = S.off.t;
     if (t === 0) return setBanner('', 'Ready. Press Launch attack to start the clock; the attack begins at T+00:30.');
     if (t < T_ATTACK) return setBanner('', c.benign ? 'Normal overnight operation. A scheduled charging surge starts at T+00:30.' : 'Normal overnight operation. The botnet fires at T+00:30.');
-    if (S.off.shedMW > 0 || S.off.F.tripped.some((x) => x)) return setBanner('bad', '<b>The unprotected grid is failing:</b> load is being shed and feeder breakers are tripping. The map shows the GridGuard side.');
-    setBanner('', c.benign ? 'A legitimate surge is under way. Watching whether GridGuard overreacts.' : '<b>Attack in progress.</b> Chargers are ramping together and GridGuard is scoring the surge.');
+    if (S.off.shedMW > 0 || S.off.F.tripped.some((x) => x)) return setBanner('bad', '<b>The unprotected grid is failing:</b> load is being shed and feeder breakers are tripping. The map shows the SENTINEL side.');
+    setBanner('', c.benign ? 'A legitimate surge is under way. Watching whether SENTINEL overreacts.' : '<b>Attack in progress.</b> Chargers are ramping together and SENTINEL is scoring the surge.');
   }
 
   const STCOL = ['#5b7a8c', '#e5534b', '#d9a441', '#9a86c9', null, '#555'];
@@ -194,13 +194,13 @@
     const pts = (sim, key) => sim.hist.t.map((t, i) => [t, sim.hist[key][i]]);
     C.line($('chF'), {
       xMin: 0, xMax: DURATION, yMin: 48.4, yMax: 50.15, yFmt: (v) => v.toFixed(1), xFmt: xf, yLabel: 'Hz', xLabel: xl,
-      series: [{ label: 'unprotected', color: COL.off, data: pts(S.off, 'f') }, { label: 'with GridGuard', color: COL.on, data: pts(S.on, 'f') }],
+      series: [{ label: 'unprotected', color: COL.off, data: pts(S.off, 'f') }, { label: 'with SENTINEL', color: COL.on, data: pts(S.on, 'f') }],
       hlines: [{ y: 50, color: '#4a535c' }, { y: 49.0, label: 'load shedding starts (49.0 Hz)', color: COL.warn }, { y: 48.4, label: 'final stage', color: '#a04540' }], vlines: vl,
     });
     const ymax = Math.max(500, ...S.off.hist.dEv, ...S.on.hist.dEv) * 1.1;
     C.line($('chL'), {
       xMin: 0, xMax: DURATION, yMin: 0, yMax: ymax, yFmt: n0, xFmt: xf, yLabel: 'MW', xLabel: xl,
-      series: [{ label: 'unprotected', color: COL.off, data: pts(S.off, 'dEv'), fill: true }, { label: 'with GridGuard', color: COL.on, data: pts(S.on, 'dEv'), fill: true }], vlines: vl,
+      series: [{ label: 'unprotected', color: COL.off, data: pts(S.off, 'dEv'), fill: true }, { label: 'with SENTINEL', color: COL.on, data: pts(S.on, 'dEv'), fill: true }], vlines: vl,
     });
     C.line($('chR'), {
       xMin: 0, xMax: DURATION, yMin: 0, yMax: 1, yFmt: (v) => v.toFixed(1), xFmt: xf, legend: false, yLabel: 'risk score (0-1)', xLabel: xl,

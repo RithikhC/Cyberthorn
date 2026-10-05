@@ -1,5 +1,5 @@
 {
-  "name": "gridguard-ev",
+  "name": "sentinel",
   "version": "0.1.0",
   "description": "Cyber-physical intrusion detection and automated mitigation that protects the grid from compromised EV chargers (Cyberthorn hackathon prototype)",
   "scripts": { "start": "node scripts/serve.js", "test": "node test/engine.test.js", "bench": "node scripts/benchmark.js" },

@@ -3,25 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GridGuard EV — live grid attack simulation</title>
-<meta name="description" content="Simulation of a coordinated attack on EV chargers and how GridGuard throttles it before the grid trips.">
+<title>SENTINEL — live grid attack simulation</title>
+<meta name="description" content="Simulation of a coordinated attack on EV chargers and how SENTINEL throttles it before the grid trips.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23e5534b'/%3E%3Cpath d='M18 5 9 18h6l-1 9 9-13h-6z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="top">
-  <h1>GridGuard EV</h1>
-  <span class="sub">Live attack simulation</span>
+  <h1>SENTINEL</h1>
+  <span class="sub">Protecting the grid from compromised EV chargers</span>
   <span class="links"><a href="https://github.com/RithikhC/Cyberthorn">Source on GitHub</a></span>
 </header>
 
 <main>
-  <p class="intro">If enough EV chargers are compromised, an attacker can push all of them to a high charging rate at the same moment and overload the grid. This page runs the <b>same attack twice</b> on a model of the UAE grid: once with no protection, and once with GridGuard, which spots the artificial surge and throttles it before breakers trip. Choose a scenario on the left and press <b>Launch attack</b>.</p>
+  <p class="intro">If enough EV chargers are compromised, an attacker can push all of them to a high charging rate at the same moment and overload the grid. This page runs the <b>same attack twice</b> on a model of the UAE grid: once with no protection, and once with SENTINEL, which spots the artificial surge and throttles it before breakers trip. Choose a scenario on the left and press <b>Launch attack</b>.</p>
 
   <div class="status" id="banner">
     <div class="clock num" id="clock">T+00:00</div>
     <div class="msg" id="bannerMsg"></div>
-    <div class="seg" id="viewSeg"><button data-v="on" class="on">Map: with GridGuard</button><button data-v="off">Map: without</button></div>
+    <div class="seg" id="viewSeg"><button data-v="on" class="on">Map: with SENTINEL</button><button data-v="off">Map: without</button></div>
   </div>
 
   <div class="layout">
@@ -47,8 +47,8 @@
       <label class="chk"><input type="checkbox" id="benign"><span>No attack: a legitimate off-peak tariff surge (false-alarm test)</span></label>
 
       <h3 class="sec">Defence</h3>
-      <label class="f">Chargers GridGuard can control <b id="lbEnf"></b></label><input type="range" id="enf" min="0.1" max="1" step="0.05">
-      <div class="hint">Share of chargers that sit behind an independent GridGuard gateway.</div>
+      <label class="f">Chargers SENTINEL can control <b id="lbEnf"></b></label><input type="range" id="enf" min="0.1" max="1" step="0.05">
+      <div class="hint">Share of chargers that sit behind an independent SENTINEL gateway.</div>
 
       <div class="btnrow">
         <button class="btn primary" id="btnRun">Launch attack</button>
@@ -75,8 +75,8 @@
       <div class="card">
         <h3>Event log</h3>
         <div class="logs">
-          <div><div class="cap">Without GridGuard</div><div class="log" id="logOff"></div></div>
-          <div><div class="cap">With GridGuard</div><div class="log" id="logOn"></div></div>
+          <div><div class="cap">Without SENTINEL</div><div class="log" id="logOff"></div></div>
+          <div><div class="cap">With SENTINEL</div><div class="log" id="logOn"></div></div>
         </div>
       </div>
     </div>
@@ -85,8 +85,8 @@
     <div class="col-r">
       <div class="card"><h3>Grid frequency</h3><canvas id="chF" class="chart tall"></canvas></div>
       <div class="card"><h3>Charging load above plan</h3><canvas id="chL" class="chart"></canvas></div>
-      <div class="card"><h3>GridGuard risk score <small>worst feeder</small></h3><canvas id="chR" class="chart" style="height:180px"></canvas></div>
-      <div class="card"><h3>Feeder status <small>with GridGuard</small></h3>
+      <div class="card"><h3>SENTINEL risk score <small>worst feeder</small></h3><canvas id="chR" class="chart" style="height:180px"></canvas></div>
+      <div class="card"><h3>Feeder status <small>with SENTINEL</small></h3>
         <div class="fgroup">General feeders</div><div class="chips" id="chipsG"></div>
         <div class="fgroup">EV-dense district feeders</div><div class="chips" id="chipsH"></div>
         <div class="legend"><span><i class="sq" style="background:#2f6b4d"></i>normal</span><span><i class="sq" style="background:#d9a441"></i>watch</span><span><i class="sq" style="background:#e5534b"></i>throttle</span><span><i class="sq" style="background:#9a86c9"></i>isolate</span><span><i class="sq" style="background:#7aa2d6"></i>recover</span></div>
@@ -95,7 +95,7 @@
   </div>
 
   <details class="how">
-    <summary>How GridGuard decides</summary>
+    <summary>How SENTINEL decides</summary>
     <div class="cols">
       <div><h4>Watches the feeder, not the charger</h4><p>It tracks how fast charging load is rising on each feeder and whether it keeps drifting above plan. This works even if the chargers and the charging backend are both compromised.</p></div>
       <div><h4>Checks requests against what was authorised</h4><p>A charger asking for far more power than the backend scheduled, and many doing it within seconds of each other, is a strong sign of attack. A normal tariff-start surge was scheduled, so it is left alone.</p></div>

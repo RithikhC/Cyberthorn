@@ -1,4 +1,4 @@
-// node scripts/worstcase.js — sweep for scenarios where GridGuard performs worst
+// node scripts/worstcase.js — sweep for scenarios where SENTINEL performs worst
 const G = require('../js/engine.js');
 const rows = [];
 const grid = {
@@ -15,7 +15,7 @@ const score = (r) => r.on.shedMW + r.on.lossMW * 0.5 + (r.on.collapsed ? 1e5 : 0
 rows.sort((a, b) => score(b) - score(a));
 console.log('total runs', rows.length, '| with shed>0:', rows.filter(r => r.on.shedMW > 0).length, '| with trips>0:', rows.filter(r => r.on.feederTrips > 0).length, '| collapsed:', rows.filter(r => r.on.collapsed).length);
 rows.slice(0, 8).forEach((r) => console.log(JSON.stringify(r.cfg), '=>', JSON.stringify({ minF: r.on.minF, shed: r.on.shedMW, trips: r.on.feederTrips, lat: r.on.detectLatency, loss: r.on.lossMW })));
-// weakest-assumption boundary: how much enforcement/latency can GridGuard tolerate on the baseline attack?
+// weakest-assumption boundary: how much enforcement/latency can SENTINEL tolerate on the baseline attack?
 console.log('\nBaseline nationwide 60% 2040, defended — enforcement vs latency:');
 for (const e of [0.95, 0.7, 0.5, 0.3, 0.1]) {
   console.log('enforce', e, [1.5, 5, 15, 30].map(l => { const s = new G.Simulation({ year: 2040, pct: 0.6, enforceProb: e, latency: l }).run(300).summary(); return `lat${l}s: ${s.minF.toFixed(2)}Hz/${s.shedMW}MW/${s.feederTrips}tr`; }).join('  '));

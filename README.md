@@ -1,8 +1,8 @@
-# GridGuard EV
+# SENTINEL
 
 **Live demo: https://rithikhc.github.io/Cyberthorn/**
 
-A simulation of what happens when EV chargers are hacked and told to charge hard at the same moment, and how GridGuard stops it. Built for Cyberthorn under the theme *Cybersecurity & Critical Infrastructure Protection*.
+A simulation of what happens when EV chargers are hacked and told to charge hard at the same moment, and how SENTINEL stops it. Built for Cyberthorn under the theme *Cybersecurity & Critical Infrastructure Protection*.
 
 ## The problem
 
@@ -12,7 +12,7 @@ We don't look at how chargers get hacked. We assume some will be, and protect th
 
 ## What the demo shows
 
-The page runs the same attack twice on a model of the UAE grid, once unprotected and once with GridGuard, and compares them live: grid frequency, charging load, breaker trips, load shedding, the detector's risk score and the state of each feeder.
+The page runs the same attack twice on a model of the UAE grid, once unprotected and once with SENTINEL, and compares them live: grid frequency, charging load, breaker trips, load shedding, the detector's risk score and the state of each feeder.
 
 Scenarios you can pick (or build with the sliders):
 
@@ -23,9 +23,9 @@ Scenarios you can pick (or build with the sliders):
 - daytime attempt (cars unplugged, so little happens)
 - attacker overdrives the batteries (cars cut off, attack defeats itself)
 - false-alarm test: a legitimate scheduled tariff surge
-- worst case: 2050, everything hacked, GridGuard controls only 30% of chargers
+- worst case: 2050, everything hacked, SENTINEL controls only 30% of chargers
 
-## How GridGuard decides
+## How SENTINEL decides
 
 Each feeder gets a risk score once a second from four signals: how fast charging load is rising, whether it keeps drifting above plan, how far chargers' requests exceed what the backend authorised, and how many chargers stepped up together. Weights and thresholds are in `docs/MODEL.md`.
 
@@ -38,7 +38,7 @@ Each feeder gets a risk score once a second from four signals: how fast charging
 
 2040 fleet, 01:30, 300 s, seed 7. Full table in `docs/BENCHMARKS.md`.
 
-| Scenario | No defence | With GridGuard |
+| Scenario | No defence | With SENTINEL |
 |---|---|---|
 | Nationwide, 60% compromised | 2,131 MW shed, 5 breakers tripped, 48.94 Hz | nothing shed, no trips, 49.77 Hz, throttle in 3 s |
 | Local EV-dense district (Dubai) | breaker trips | no trip |
@@ -46,7 +46,7 @@ Each feeder gets a risk score once a second from four signals: how fast charging
 | Legitimate tariff surge | n/a | no false alarm, nothing quarantined |
 | Worst case (2050, 30% control) | 10,656 MW shed, 7 trips | 4,262 MW shed, 6 trips (partly contained) |
 
-The worst case is the honest limit: GridGuard can only throttle the chargers it can physically control.
+The worst case is the honest limit: SENTINEL can only throttle the chargers it can physically control.
 
 ## Limitations
 
@@ -63,7 +63,7 @@ No install needed. Open `index.html`, or:
 node scripts/serve.js     # http://localhost:5173
 node test/engine.test.js  # 13 engine tests
 node scripts/benchmark.js # benchmark table
-node scripts/worstcase.js # sweep for GridGuard's weakest case
+node scripts/worstcase.js # sweep for SENTINEL's weakest case
 ```
 
 ## Layout

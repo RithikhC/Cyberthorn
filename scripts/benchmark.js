@@ -8,7 +8,7 @@ const S = [
   ['Daytime attempt (14:00), 60%', { hour: 14 }], ['BMS overdrive (110%)', { a: 1.1 }], ['FALSE-ALARM TEST: legit off-peak tariff surge', { benign: true }], ['WORST CASE: 2050, 100% compromised, only 30% of chargers enforceable', { year: 2050, pct: 1, enforceProb: 0.3 }],
 ];
 console.log('# Benchmark results (2040 fleet, 01:30, 300 s, seed 7)\n');
-console.log('| Scenario | Compromised | No defence: nadir Hz | shed MW | feeder trips | GridGuard: nadir Hz | shed MW | trips | throttle after | surge cut |');
+console.log('| Scenario | Compromised | No defence: nadir Hz | shed MW | feeder trips | SENTINEL: nadir Hz | shed MW | trips | throttle after | surge cut |');
 console.log('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
 for (const [name, o] of S) {
   const cfg = Object.assign({}, BASE, o), { off, on } = G.runTwins(cfg, 300), a = off.summary(), b = on.summary();

@@ -1,12 +1,12 @@
 /*
- * GridGuard EV — simulation + defence engine
+ * SENTINEL — simulation + defence engine
  * Cyberthorn hackathon prototype (theme: Cybersecurity & Critical Infrastructure Protection)
  *
  * Contents
  *   1. Parameters + demographic models (EV fleet, charger counts, load curves)
  *   2. Fleet builder (agent-based: each agent = a cluster of `w` real chargers)
  *   3. Reduced grid model (swing equation + governor + UFLS) used by the threat-math sweeps
- *   4. Simulation: fleet + feeders + relays + grid + the GridGuard detector/mitigator
+ *   4. Simulation: fleet + feeders + relays + grid + the SENTINEL detector/mitigator
  *
  * Works in the browser (window.GG) and in Node (require).
  * All numbers are ILLUSTRATIVE and parameterised; see docs/MODEL.md for the assumptions.
@@ -425,7 +425,7 @@
 
     feederName(f) { return REGIONS[f >> 1].name + (f % 2 ? ' (EV-dense district)' : ' (general)'); }
 
-    /* ---------------------------------------------- GridGuard (1 Hz control) */
+    /* ---------------------------------------------- SENTINEL (1 Hz control) */
     _control(evTot, load) {
       const cfg = this.cfg, F = this.F, t = this.t, n = this.n, nF = this.nF;
       // per-feeder aggregates from charger-side telemetry
@@ -529,7 +529,7 @@
       F.pendEx[f] = 0; F.exApplyAt[f] = this.t + this.cfg.latency;
       if (!this.metrics.wentThrottle) {
         this.metrics.wentThrottle = true; this.metrics.firstThrottleAt = this.t;
-        this.say(this.t, 'good', `GridGuard started throttling ${(this.t - this.cfg.tAttack).toFixed(1)} s after the attack began, forcing chargers back to their scheduled rate.`);
+        this.say(this.t, 'good', `SENTINEL started throttling ${(this.t - this.cfg.tAttack).toFixed(1)} s after the attack began, forcing chargers back to their scheduled rate.`);
       }
       if (this.cfg.benign) this.metrics.falseThrottle = (this.metrics.falseThrottle || 0) + 1;
     }

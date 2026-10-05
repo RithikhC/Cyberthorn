@@ -1,6 +1,6 @@
 # Benchmark results (2040 fleet, 01:30, 300 s, seed 7)
 
-| Scenario | Compromised | No defence: nadir Hz | shed MW | feeder trips | GridGuard: nadir Hz | shed MW | trips | throttle after | surge cut |
+| Scenario | Compromised | No defence: nadir Hz | shed MW | feeder trips | SENTINEL: nadir Hz | shed MW | trips | throttle after | surge cut |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | National strike, 60% compromised, synchronised | 925,208 | 48.94 | 2,131 | 5 | 49.77 | 0 | 0 | 3 s | 65% |
 | National strike, 30% compromised | 470,961 | 49.81 | 0 | 1 | 49.85 | 0 | 0 | 3 s | 56% |

@@ -7,4 +7,4 @@ http.createServer((req, res) => {
   const f = path.join(root, p);
   if (!f.startsWith(root)) { res.writeHead(403); return res.end(); }
   fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); return res.end('not found'); } res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(d); });
-}).listen(port, () => console.log('GridGuard EV on http://localhost:' + port));
+}).listen(port, () => console.log('SENTINEL on http://localhost:' + port));
