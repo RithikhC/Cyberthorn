@@ -311,7 +311,7 @@
         everWatch: false, falseQuarantine: 0, collapsedAt: -1, lossMW: 0,
       };
       this.tick = 0; this.nextTick = 1;
-      this.say(0, 'info', cfg.benign ? 'Scenario: legitimate synchronised off-peak tariff start (benign).' : `Scenario armed: ${Math.round(compDevices).toLocaleString()} compromised chargers (${Math.round((compDevices / Math.max(1, candDevices)) * 100)}% of ${cfg.scope} scope).`);
+      this.say(0, 'info', cfg.benign ? 'Scenario: legitimate synchronised off-peak tariff start (benign).' : `Attack armed: ${Math.round(compDevices).toLocaleString()} compromised chargers (${Math.round((compDevices / Math.max(1, candDevices)) * 100)}% of ${cfg.scope} scope).`);
     }
 
     say(t, level, msg) { this.log.push({ t, level, msg }); if (this.log.length > 400) this.log.shift(); }
@@ -386,7 +386,7 @@
         else F.heat[f] = Math.max(0, F.heat[f] - 0.5 * dt);
         if (F.heat[f] >= FEEDER.heatLimit) {
           F.tripped[f] = 1; F.trippedAt[f] = t; this.metrics.feederTrips++; this.metrics.tripLoadMW += F.base[f] + F.E0[f];
-          this.say(t, 'crit', `RELAY TRIP — ${this.feederName(f)} feeder breaker opened (${(F.ratio[f] * 100).toFixed(0)}% of rating).`);
+          this.say(t, 'crit', `Breaker tripped on ${this.feederName(f)} feeder at ${(F.ratio[f] * 100).toFixed(0)}% of rating.`);
           lossNow += F.base[f] + F.E0[f];
         } else load += tot;
       }
@@ -407,10 +407,10 @@
             this.uflsDone[k] = true; this.uflsAt[k] = t;
             const mw = s.shed * this.Bt; this.shedMW += mw;
             if (this.metrics.firstShedAt < 0) this.metrics.firstShedAt = t;
-            this.say(t, 'crit', `UNDER-FREQUENCY LOAD SHEDDING stage ${k + 1} @ ${this.fHz.toFixed(2)} Hz — ${Math.round(mw).toLocaleString()} MW of customers disconnected.`);
+            this.say(t, 'crit', `Load shedding stage ${k + 1} at ${this.fHz.toFixed(2)} Hz: ${Math.round(mw).toLocaleString()} MW of customers disconnected.`);
           }
         });
-        if (this.fHz < GRID.collapseF) { this.collapsed = true; this.metrics.collapsedAt = t; this.say(t, 'crit', 'FREQUENCY COLLAPSE — cascading generator trips, system blackout.'); }
+        if (this.fHz < GRID.collapseF) { this.collapsed = true; this.metrics.collapsedAt = t; this.say(t, 'crit', 'Frequency collapse: generators trip in cascade, system blackout.'); }
       }
       const m = this.metrics;
       if (this.fHz < m.minF) m.minF = this.fHz;
@@ -423,7 +423,7 @@
       if (t >= this.nextTick - 1e-9) { this.nextTick += 1; this.tick++; this._control(evTot, load); }
     }
 
-    feederName(f) { return REGIONS[f >> 1].name + (f % 2 ? ' · hot-spot' : ' · general'); }
+    feederName(f) { return REGIONS[f >> 1].name + (f % 2 ? ' (EV-dense district)' : ' (general)'); }
 
     /* ---------------------------------------------- GridGuard (1 Hz control) */
     _control(evTot, load) {
@@ -513,14 +513,14 @@
           if (F.state[f] === ST.NORMAL) { this._setState(f, ST.WATCH, 'national coordinator: campaign suspected'); F.holdUntil[f] = t + 40; }
           else if (F.state[f] === ST.WATCH && F.risk[f] >= 0.3) { this._enterThrottle(f, 'national coordinator pre-emption'); esc++; }
         }
-        if (esc && !this._natLogged) { this._natLogged = true; this.say(t, 'warn', 'National coordinator: multi-feeder campaign detected — pre-empting remaining feeders.'); }
+        if (esc && !this._natLogged) { this._natLogged = true; this.say(t, 'warn', 'National coordinator: several feeders under attack at once, throttling the rest in advance.'); }
       }
     }
 
     _setState(f, s, why) {
       this.F.state[f] = s;
       const lvl = s >= ST.THROTTLE ? 'warn' : 'info';
-      this.say(this.t, lvl, `${this.feederName(f)} → ${ST_NAME[s]}${why ? ' (' + why + ')' : ''}`);
+      this.say(this.t, lvl, `${this.feederName(f)}: ${ST_NAME[s].toLowerCase()}${why ? ' (' + why + ')' : ''}`);
     }
     _enterThrottle(f, why) {
       const F = this.F;
@@ -529,7 +529,7 @@
       F.pendEx[f] = 0; F.exApplyAt[f] = this.t + this.cfg.latency;
       if (!this.metrics.wentThrottle) {
         this.metrics.wentThrottle = true; this.metrics.firstThrottleAt = this.t;
-        this.say(this.t, 'good', `GridGuard THROTTLE engaged ${(this.t - this.cfg.tAttack).toFixed(1)} s after attack start — forcing chargers back to authorised profile.`);
+        this.say(this.t, 'good', `GridGuard started throttling ${(this.t - this.cfg.tAttack).toFixed(1)} s after the attack began, forcing chargers back to their scheduled rate.`);
       }
       if (this.cfg.benign) this.metrics.falseThrottle = (this.metrics.falseThrottle || 0) + 1;
     }
@@ -544,7 +544,7 @@
         if (this.req[i] - basis >= 0.25 * mx) { this.quarAt[i] = this.t + cfg.latency; cnt += this.w[i]; if (!this.comp[i]) this.metrics.falseQuarantine += this.w[i]; }
       }
       this.metrics.quarantined += cnt;
-      this.say(this.t, 'warn', `${Math.round(cnt).toLocaleString()} non-compliant chargers quarantined at ${this.feederName(f)} (safe-mode 6 A, operator review).`);
+      this.say(this.t, 'warn', `${Math.round(cnt).toLocaleString()} non-compliant chargers quarantined at ${this.feederName(f)} (held at 6 A for operator review).`);
     }
 
     // Per feeder: MW an attacker could add if every connected charger were compromised, and the

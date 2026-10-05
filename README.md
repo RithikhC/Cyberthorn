@@ -1,82 +1,81 @@
 # GridGuard EV
 
-**Protecting the power grid from compromised EV chargers** — Cyberthorn hackathon prototype
-Theme: *Cybersecurity & Critical Infrastructure Protection* (aligned with the UAE National Cybersecurity Strategy)
+**Live demo: https://rithikhc.github.io/Cyberthorn/**
 
-> Hackers don't need to break the grid directly. If enough EV chargers are compromised, they can raise every charging rate at once — just under the level where each car's BMS would cut off — and push the grid past its reserve. It only works while cars are plugged in (mainly **overnight**), and the number of chargers grows every year.
->
-> We don't try to stop every exploit. **We assume chargers get hacked and protect the grid**: detect the artificial load surge and throttle it *before* feeder relays or under-frequency load shedding trip.
+A simulation of what happens when EV chargers are hacked and told to charge hard at the same moment, and how GridGuard stops it. Built for Cyberthorn under the theme *Cybersecurity & Critical Infrastructure Protection*.
 
-## Run the demo (no install, no dependencies)
+## The problem
 
-```bash
-node scripts/serve.js          # then open http://localhost:5173
-```
+If enough chargers are compromised, an attacker can raise every charging rate at once, staying just under the point where each car's battery management would cut the car off. The surge can overload feeders or drag grid frequency down far enough to force load shedding. It only works while cars are plugged in (mostly overnight), and the number of chargers grows every year.
 
-or just open `index.html` in a browser (plain JS, works offline). It also deploys as-is on GitHub Pages.
+We don't look at how chargers get hacked. We assume some will be, and protect the grid: spot the artificial surge and throttle it before breakers or under-frequency relays trip.
 
-```bash
-node test/engine.test.js       # 13 engine tests
-node scripts/benchmark.js      # benchmark table (see docs/BENCHMARKS.md)
-```
+## What the demo shows
 
-## What's in the prototype
+The page runs the same attack twice on a model of the UAE grid, once unprotected and once with GridGuard, and compares them live: grid frequency, charging load, breaker trips, load shedding, the detector's risk score and the state of each feeder.
 
-| Tab | What it shows |
-|---|---|
-| **Live cyber-range** | A UAE-wide fleet of ~2,400 charger clusters (each stands for thousands of real chargers). Launch an attack and watch the **same attack run twice in parallel** — unprotected vs. GridGuard — on grid frequency, charging load, relay trips, load shedding, detector risk score and per-feeder defence state. 7 presets: nationwide, local, stealth ramp + poisoned backend, home-only, daytime, BMS overdrive and a **benign false-alarm test**. |
-| **How many chargers?** | Sweeps the compromised share against a frequency-response model → how many chargers an attacker needs, by year and time of day; local feeder thresholds per emirate. |
-| **EV growth** | EV fleet, chargers by type, global EV share; when attackable overnight load crosses the grid's reserve. |
-| **Home vs stations** | Which device class is the better target (MW per device, devices needed, availability, exposure). |
-| **Benchmarks** | 11 scenarios, defended vs undefended, including a false-alarm test. |
-| **Architecture** | Three detection layers, staged mitigation, SCADA/IoT integration, hardware gateway plan. |
+Scenarios you can pick (or build with the sliders):
 
-## The questions we were asked (answers from the model — illustrative, see `docs/MODEL.md`)
+- nationwide overnight attack
+- local attack on Dubai's EV-dense districts
+- slow ramp with a compromised charging backend
+- home chargers only
+- daytime attempt (cars unplugged, so little happens)
+- attacker overdrives the batteries (cars cut off, attack defeats itself)
+- false-alarm test: a legitimate scheduled tariff surge
+- worst case: 2050, everything hacked, GridGuard controls only 30% of chargers
 
-**How many charging stations must be compromised?** It depends on connected load and grid reserve (8% of online generation in the model). At 01:30 the attackable overnight load first exceeds the reserve around **2033–2034** on the policy-anchored EV path (about 2030 if adoption is faster). In 2040 roughly **606k chargers (≈41% of installed)** suffice to start load-shedding; the share needed falls to ≈27% by 2045 and ≈18% by 2050. A **local** attack is far easier: in 2040 only **≈26% of Dubai's EV-dense district chargers** overload that feeder's breaker. Daytime attacks are much weaker because cars are not plugged in.
+## How GridGuard decides
 
-**How will EV popularity grow charger numbers?** UAE policy anchors (≈10% of the fleet by 2030, 50% by 2050; Dubai 47,944 EVs at end-2025) give ≈0.5 M EVs in 2030, ≈2.1 M in 2040 and ≈4.7 M in 2050 in the model, with chargers growing faster than the grid planning around them. Globally the IEA reports >20% of new-car sales in 2024 and >40% by 2030 on current policies.
+Each feeder gets a risk score once a second from four signals: how fast charging load is rising, whether it keeps drifting above plan, how far chargers' requests exceed what the backend authorised, and how many chargers stepped up together. Weights and thresholds are in `docs/MODEL.md`.
 
-**Home units vs public stations?** At night home units supply ≈**98% of attackable load** (85% are plugged in; millions of weakly managed endpoints). DC fast chargers move the most power per device but are mostly idle overnight. For a nationwide overnight strike home units win; for a fast, low-footprint local strike, a compromised charge-point-operator *backend* gives the most megawatts per exploit. The defence is identical either way: **watch the feeder, not the charger.**
+- Watch at 0.30, throttle at 0.55 (held for 2 s).
+- Throttle forces chargers back to their schedule; persistent offenders are quarantined at 6 A, which still charges slowly; release is gradual.
+- A national coordinator spreads the alert when several feeders are hit at once.
+- Enforcement is meant to run on an independent hardware gateway, so a compromised charger cannot ignore it (`hardware/README.md`).
 
-## How GridGuard works
+## Results
 
-1. **Physical layer** (trusts nothing): feeder-level EV load ramp rate, CUSUM drift vs. a slow forecast, projected overload — independent of charger firmware and backend.
-2. **Cyber layer**: charger-*requested* power vs. what the charging management system *authorised*, plus a synchrony index (how many chargers stepped up together). A legitimate tariff-start surge is authorised, so no false alarm.
-3. **Coordination layer**: a national coordinator correlates feeders and PMU frequency/RoCoF; a multi-feeder campaign pre-empts the remaining feeders.
-
-Staged response per feeder: `NORMAL → WATCH → THROTTLE → ISOLATE → RECOVER` — force chargers back to the authorised profile, clamp feeder headroom, quarantine non-compliant units at 6 A safe-mode (cars still charge slowly), release in stages with hysteresis. Enforcement is meant to run on an **independent hardware gateway** (see `hardware/`), so a compromised charger cannot ignore it.
-
-### Results (2040 fleet, night, seed 7 — full table in `docs/BENCHMARKS.md`)
+2040 fleet, 01:30, 300 s, seed 7. Full table in `docs/BENCHMARKS.md`.
 
 | Scenario | No defence | With GridGuard |
 |---|---|---|
-| Nationwide, 60% compromised | 2,131 MW customers shed, 5 feeder trips, 48.94 Hz | 0 shed, 0 trips, 49.77 Hz — throttle in 3 s |
-| Local EV-dense district (Dubai) | feeder breaker trips | no trip |
-| Stealth 90 s ramp + poisoned backend | 2,131 MW shed | 0 shed — throttle in 9 s |
-| Legit off-peak tariff surge | – | **no false alarm**, nothing quarantined |
-| Overdrive past BMS limit | cars cut themselves off | attack defeats itself |
+| Nationwide, 60% compromised | 2,131 MW shed, 5 breakers tripped, 48.94 Hz | nothing shed, no trips, 49.77 Hz, throttle in 3 s |
+| Local EV-dense district (Dubai) | breaker trips | no trip |
+| Slow ramp, backend compromised | 2,131 MW shed | nothing shed, throttle in 9 s |
+| Legitimate tariff surge | n/a | no false alarm, nothing quarantined |
+| Worst case (2050, 30% control) | 10,656 MW shed, 7 trips | 4,262 MW shed, 6 trips (partly contained) |
 
-## Honest limitations
+The worst case is the honest limit: GridGuard can only throttle the chargers it can physically control.
 
-- Single-area frequency model with illustrative parameters — not a validated power-system study. The detector and simulator were written by the same team; real validation needs utility data and a hardware-in-the-loop bench.
-- Charger clusters are aggregated agents; no per-charger network protocol is simulated.
-- The project deliberately does **not** cover how chargers are exploited.
+## Limitations
 
-## Roadmap to the hardware prototype
+- Single-area frequency model with illustrative parameters. It is not a validated power-system study, and the detector and simulator were written by the same team.
+- Charger clusters are aggregated; no real charger protocol is simulated.
+- The feeder load clamp reacts instantly in the model, which makes results look better than a real command delay would allow.
+- UAE and IEA figures come from public reporting (sources in `docs/MODEL.md`); check them before quoting.
 
-ESP32 gateway in series with the charger (current transformer + voltage sense), independent pilot-PWM limiter and contactor, signed command channel, local fail-safe. The control logic in `js/engine.js` (`_guard`) is the reference for the gateway firmware. Details in `hardware/README.md`.
+## Run it locally
 
-## Repo layout
+No install needed. Open `index.html`, or:
+
+```bash
+node scripts/serve.js     # http://localhost:5173
+node test/engine.test.js  # 13 engine tests
+node scripts/benchmark.js # benchmark table
+node scripts/worstcase.js # sweep for GridGuard's weakest case
+```
+
+## Layout
 
 ```
-index.html            dashboard
-js/engine.js          simulation + detector + mitigator (browser & Node)
-js/charts.js          dependency-free canvas charts
-js/app.js             UI
-test/engine.test.js   engine tests
-scripts/              serve.js · benchmark.js
-docs/MODEL.md         assumptions, equations, sources
-docs/BENCHMARKS.md    benchmark output
-hardware/README.md    gateway design notes
+index.html         the live simulation page
+css/style.css      styles
+js/engine.js       grid, fleet, detector and mitigator
+js/charts.js       small canvas chart helper
+js/app.js          page controls and rendering
+test/              engine tests
+scripts/           local server, benchmark, worst-case sweep
+docs/              model assumptions and benchmark output
+hardware/          gateway design notes (next phase)
 ```
