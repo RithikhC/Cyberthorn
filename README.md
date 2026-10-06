@@ -9,6 +9,8 @@
 
 **Live demo: https://rithikhc.github.io/Cyberthorn/**
 
+**A0 poster:** [`poster/SENTINEL-A0-poster.pdf`](poster/SENTINEL-A0-poster.pdf) (print-ready, 841 x 1189 mm). Source in `poster/poster.html`; regenerate the figures with `node scripts/make-poster-figs.js`.
+
 A simulation of what happens when EV chargers are hacked and told to charge hard at the same moment, and how SENTINEL stops it. Built for Cyberthorn under the theme *Cybersecurity & Critical Infrastructure Protection*.
 
 ## The problem

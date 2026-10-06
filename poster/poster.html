@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SENTINEL — A0 poster</title>
+<style>
+  @page { size: 841mm 1189mm; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #e9ecef; }
+  body { font-family: 'Segoe UI', system-ui, Arial, sans-serif; color: #1b2024; font-size: 29pt; line-height: 1.33; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @media print { html, body { background: #fff; } }
+  .poster { width: 841mm; height: 1189mm; background: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; margin: 0 auto; }
+
+  /* hero */
+  .hero { background: #15191c; color: #fff; height: 150mm; padding: 0 28mm; display: flex; align-items: center; gap: 24mm; flex: none; }
+  .hero .mark { width: 104mm; height: 104mm; flex: none; }
+  .hero .titles { flex: 1; }
+  .hero h1 { margin: 0; font-size: 150pt; line-height: 1; letter-spacing: .1em; font-weight: 700; }
+  .hero .tag { font-size: 42pt; color: #dfe3e7; margin-top: 4mm; font-weight: 500; }
+  .hero .meta { font-size: 25pt; color: #8a949e; margin-top: 7mm; letter-spacing: .03em; }
+  .hero .qr { flex: none; text-align: center; }
+  .hero .qr .box { background: #fff; padding: 4mm; width: 52mm; height: 52mm; border-radius: 3mm; }
+  .hero .qr img { width: 100%; height: 100%; display: block; }
+  .hero .qr b { display: block; margin-top: 4mm; font-size: 26pt; color: #fff; }
+  .hero .qr span { font-size: 18pt; color: #8a949e; }
+  .stripe { height: 7mm; background: linear-gradient(90deg, #d6453d 0 33.33%, #2e8b5b 33.33% 66.66%, #1b2024 66.66%); flex: none; }
+
+  /* body grid */
+  .body { flex: 1; padding: 12mm 26mm 0; display: grid; grid-template-rows: auto auto 1fr; gap: 9mm; min-height: 0; }
+  .row { display: grid; gap: 14mm; min-height: 0; }
+  .r1 { grid-template-columns: 0.92fr 1.16fr 0.92fr; }
+  .r3 { grid-template-columns: 0.8fr 1fr 1fr; }
+  h2 { margin: 0 0 6mm; font-size: 46pt; line-height: 1.1; display: flex; align-items: center; gap: 6mm; padding-bottom: 4mm; border-bottom: 2.4mm solid #1b2024; }
+  h2 .n { flex: none; width: 18mm; height: 18mm; background: #1b2024; color: #fff; font-size: 30pt; display: flex; align-items: center; justify-content: center; border-radius: 2mm; font-weight: 700; }
+  h3 { margin: 5mm 0 2mm; font-size: 32pt; line-height: 1.2; font-weight: 700; }
+  p { margin: 0 0 4mm; }
+  ul { margin: 0; padding-left: 9mm; } li { margin: 0 0 2.5mm; }
+  .lead { font-size: 31pt; font-weight: 500; }
+  .muted { color: #5d6670; }
+
+  /* stat tiles */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 6mm; }
+  .stat { background: #f1f3f5; border-left: 3mm solid #1b2024; padding: 4mm 6mm; }
+  .stat b { display: block; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 40pt; line-height: 1.1; }
+  .stat span { font-size: 22pt; color: #5d6670; line-height: 1.2; display: block; }
+
+  /* problem */
+  .plist { counter-reset: p; list-style: none; padding: 0; }
+  .plist li { counter-increment: p; position: relative; padding-left: 20mm; margin-bottom: 5mm; }
+  .plist li::before { content: counter(p); position: absolute; left: 0; top: 1mm; width: 13mm; height: 13mm; border-radius: 50%; background: #d6453d; color: #fff; font-weight: 700; font-size: 25pt; display: flex; align-items: center; justify-content: center; }
+  .plist b { display: block; font-size: 31pt; line-height: 1.2; margin-bottom: 1mm; }
+  .plist span { font-size: 27pt; }
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 4mm; }
+  .flow div { background: #fbeceb; border: 0.8mm solid #d6453d; padding: 3mm 3mm; text-align: center; position: relative; }
+  .flow div + div { margin-left: 6mm; }
+  .flow div + div::before { content: '\25B6'; position: absolute; left: -7.2mm; top: 50%; transform: translateY(-50%); font-size: 17pt; color: #d6453d; }
+  .flow b { display: block; font-size: 27pt; line-height: 1.1; } .flow span { font-size: 19pt; color: #5d6670; line-height: 1.15; display: block; }
+  .flow div:last-child { background: #d6453d; } .flow div:last-child b, .flow div:last-child span { color: #fff; }
+
+  /* solution */
+  .layer { display: grid; grid-template-columns: 15mm 1fr; gap: 5mm; margin-bottom: 4mm; }
+  .layer i { font-style: normal; width: 15mm; height: 15mm; background: #2e8b5b; color: #fff; font-weight: 700; font-size: 26pt; display: flex; align-items: center; justify-content: center; border-radius: 2mm; }
+  .layer b { display: block; font-size: 29pt; line-height: 1.2; } .layer span { font-size: 26.5pt; }
+  .stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 3mm 0 4mm; }
+  .stages div { border: 0.8mm solid #1b2024; padding: 2mm 2mm; text-align: center; font-size: 22pt; line-height: 1.15; }
+  .stages b { display: block; font-size: 25pt; }
+  .stages div:nth-child(1) { background: #fff4d6; } .stages div:nth-child(2) { background: #fbeceb; } .stages div:nth-child(3) { background: #ece6f7; } .stages div:nth-child(4) { background: #e1eefb; }
+  .callout { background: #e9f4ee; border-left: 3mm solid #2e8b5b; padding: 4mm 6mm; font-size: 27pt; }
+
+  /* results */
+  .results { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; }
+  .fig { border: 0.8mm solid #c9cfd5; }
+  .fig img { display: block; width: 100%; height: auto; }
+  .figcap { font-size: 23pt; color: #5d6670; margin: 2mm 0 0; line-height: 1.25; }
+  .figt { font-size: 29pt; font-weight: 700; margin: 0 0 2mm; }
+  table { width: 100%; border-collapse: collapse; margin-top: 5mm; font-size: 26pt; line-height: 1.25; }
+  th { text-align: left; background: #1b2024; color: #fff; padding: 3mm 4mm; font-size: 22pt; letter-spacing: .04em; text-transform: uppercase; }
+  td { padding: 3mm 4mm; border-bottom: 0.6mm solid #c9cfd5; vertical-align: top; }
+  td.bad { color: #b33830; } td.good { color: #1f6e45; font-weight: 600; }
+  td b { font-weight: 700; }
+
+  /* row 3 */
+  .arch img { width: 100%; display: block; }
+  .big { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-bottom: 4mm; }
+  .big .stat { border-left-color: #2e8b5b; }
+  .big .stat b { font-size: 36pt; }
+  .tick { list-style: none; padding: 0; } .tick li { position: relative; padding-left: 10mm; } .tick li::before { content: ''; position: absolute; left: 0; top: 4mm; width: 5mm; height: 5mm; background: #2e8b5b; border-radius: 1mm; }
+  .tick.next li::before { background: #1b2024; }
+
+  /* footer */
+  .foot { flex: none; background: #f1f3f5; padding: 5mm 26mm 6mm; font-size: 15.5pt; line-height: 1.3; color: #3b434b; border-top: 1.5mm solid #1b2024; }
+  .foot b { color: #1b2024; }
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <header class="hero">
+    <img class="mark" src="../assets/sentinel-mark.svg" alt="">
+    <div class="titles">
+      <h1>SENTINEL</h1>
+      <div class="tag">Protecting the power grid from hacked EV chargers</div>
+      <div class="meta">Cyberthorn &nbsp;·&nbsp; Cybersecurity &amp; Critical Infrastructure Protection &nbsp;·&nbsp; [Team name] &nbsp;·&nbsp; [Members] &nbsp;·&nbsp; [University]</div>
+    </div>
+    <div class="qr"><div class="box"><img src="figs/qr.svg" alt="QR code"></div><b>Try the live demo</b><span>rithikhc.github.io/Cyberthorn</span></div>
+  </header>
+  <div class="stripe"></div>
+
+  <div class="body">
+    <div class="row r1">
+
+      <!-- 1 introduction -->
+      <section>
+        <h2><span class="n">1</span>Introduction</h2>
+        <h3 style="margin-top:0">Everything runs on the grid</h3>
+        <p>Hospitals, water and desalination, cooling, metro and airports, banks, telecom and data centres all stop without power, and so do factories and cold storage. A grid failure hits a whole economy at once, so it is critical national infrastructure.</p>
+        <p>External attackers have already shown it can be done. In 2015, hackers opened breakers at 30 substations in Ukraine and cut power to about 225,000 customers.</p>
+        <h3>EVs are going mainstream, and so are chargers</h3>
+        <ul>
+          <li>Over <b>20%</b> of new cars sold worldwide in 2024 were electric; the IEA expects over <b>40%</b> by 2030.</li>
+          <li>UAE policy targets EVs at about <b>10%</b> of the fleet by 2030 and <b>50%</b> by 2050.</li>
+          <li>Dubai had <b>47,944</b> EVs and about <b>1,860</b> public charge points at the end of 2025.</li>
+          <li>ADNOC and TAQA aim for <b>70,000</b> charge points in Abu Dhabi by 2030.</li>
+        </ul>
+        <div class="stats">
+          <div class="stat"><b>~34 GW</b><span>UAE peak electricity demand, 2024</span></div>
+          <div class="stat"><b>225,000</b><span>customers cut off in the 2015 Ukraine attack</span></div>
+          <div class="stat"><b>&gt;20%</b><span>of new cars sold worldwide are electric</span></div>
+          <div class="stat"><b>70,000</b><span>charge points targeted in Abu Dhabi by 2030</span></div>
+        </div>
+      </section>
+
+      <!-- 2 problem -->
+      <section>
+        <h2><span class="n">2</span>Problem Statement</h2>
+        <p class="lead" style="margin-bottom:5mm">Thousands of chargers, one weak point.</p>
+        <ol class="plist">
+          <li><b>Control the chargers, control the load</b><span>A charger draws 7 kW at home and up to 150 kW at a fast-charging station. An attacker who takes over thousands, one by one or through the operator's cloud backend, never needs to touch a power station.</span></li>
+          <li><b>Easy to compromise, little oversight</b><span>Cheap networked devices in car parks and driveways. Many makers, protocols and software versions: security varies by company, with no single baseline every charger must meet.</span></li>
+          <li><b>Together they can destabilise the grid</b><span>Hacked chargers raise their rate at once, just under the level where each car's battery management would cut the charge. Demand jumps faster than power plants can respond, feeders trip and frequency falls until customers are cut off. Worst overnight, when cars are plugged in.</span></li>
+          <li><b>The cost is national</b><span>Lost production, spoiled food and medicine, stalled ports, data centres and payments, then restoration. The 2003 North America blackout (not a cyberattack) hit about 50 million people and cost an estimated $6 to 10 billion.</span></li>
+        </ol>
+        <div class="flow">
+          <div><b>Hack</b><span>backend or chargers</span></div>
+          <div><b>Surge</b><span>all rates rise together</span></div>
+          <div><b>Trip</b><span>feeders overload</span></div>
+          <div><b>Blackout</b><span>customers shed</span></div>
+        </div>
+      </section>
+
+      <!-- 3 solution -->
+      <section>
+        <h2><span class="n">3</span>Our Solution</h2>
+        <p class="lead">We assume some chargers will be hacked, and <b>protect the grid</b>: detect the artificial surge and throttle it before breakers or frequency relays trip.</p>
+        <div class="layer"><i>1</i><div><b>Watch the feeder, not the charger</b><span>Tracks how fast load rises and whether it keeps drifting above plan. Works even if chargers and backend are both compromised.</span></div></div>
+        <div class="layer"><i>2</i><div><b>Check requests against what was authorised</b><span>Far more than scheduled, and many chargers at once, signals attack. A normal tariff surge was scheduled, so it passes.</span></div></div>
+        <div class="layer"><i>3</i><div><b>Coordinate nationally</b><span>If several feeders are hit together, the alert spreads to the rest.</span></div></div>
+        <h3>Staged response</h3>
+        <div class="stages">
+          <div><b>Watch</b>raise alert</div><div><b>Throttle</b>force back to schedule</div><div><b>Isolate</b>slow 6 A charge</div><div><b>Release</b>gradual return</div>
+        </div>
+        <div class="callout">Enforcement runs on an <b>independent hardware gateway</b> at each charger, so a hacked charger cannot ignore it.</div>
+      </section>
+    </div>
+
+    <!-- 4 results -->
+    <section>
+      <h2><span class="n">4</span>Results: the same attack, run twice</h2>
+      <div class="results">
+        <div>
+          <p class="figt">Grid frequency: nationwide attack, 60% of chargers hacked</p>
+          <div class="fig"><img src="figs/freq.svg" alt="Grid frequency chart"></div>
+        </div>
+        <div>
+          <p class="figt">Extra charging load on the grid</p>
+          <div class="fig"><img src="figs/load.svg" alt="Charging load chart"></div>
+        </div>
+      </div>
+      <table>
+        <tr><th style="width:34%">Scenario (2040, overnight)</th><th style="width:33%">Without SENTINEL</th><th>With SENTINEL</th></tr>
+        <tr><td>Nationwide, 60% of chargers hacked</td><td class="bad"><b>2,131 MW</b> of customers shed, 5 breakers tripped, 48.94 Hz</td><td class="good">No load shed, no trips, 49.77 Hz. Throttle in <b>3 s</b></td></tr>
+        <tr><td>Local attack on Dubai's EV-dense districts</td><td class="bad">Feeder breaker trips</td><td class="good">No trip</td></tr>
+        <tr><td>Slow ramp, charging backend compromised</td><td class="bad"><b>2,131 MW</b> shed</td><td class="good">No load shed, throttle in 9 s</td></tr>
+        <tr><td>Legitimate off-peak tariff surge</td><td>n/a</td><td class="good">No false alarm, nothing quarantined</td></tr>
+      </table>
+    </section>
+
+    <div class="row r3">
+      <section class="arch">
+        <h2 style="font-size:40pt"><span class="n" style="width:16mm;height:16mm;font-size:27pt">5</span>System</h2>
+        <img src="figs/arch.svg" alt="SENTINEL architecture">
+      </section>
+
+      <section>
+        <h2 style="font-size:40pt"><span class="n" style="width:16mm;height:16mm;font-size:27pt">6</span>What the model shows</h2>
+        <div class="big">
+          <div class="stat"><b>~600,000</b><span>hacked chargers (about 40% of those installed) start load shedding nationwide by 2040</span></div>
+          <div class="stat"><b>~1 in 4</b><span>chargers on one dense Dubai feeder can trip its breaker</span></div>
+          <div class="stat"><b>~98%</b><span>of attackable overnight load comes from home chargers</span></div>
+          <div class="stat"><b>3 s</b><span>to start throttling (9 s for a slow ramp)</span></div>
+        </div>
+        <ul class="tick">
+          <li>Daytime attacks are far weaker: cars are not plugged in.</li>
+          <li>Overdriving past the battery limit makes cars cut off, so the attack defeats itself.</li>
+          <li><b>Limit:</b> with control of only 30% of chargers, a 2050 attack is only partly contained (10,656 MW shed falls to 4,262 MW). Coverage matters.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 style="font-size:40pt"><span class="n" style="width:16mm;height:16mm;font-size:27pt">7</span>Impact &amp; next steps</h2>
+        <h3 style="margin-top:0">Why it matters</h3>
+        <ul class="tick">
+          <li>Fits the UAE National Cybersecurity Strategy: critical-infrastructure protection, detection and response, secure IoT.</li>
+          <li>Scales as chargers multiply, because it watches the feeder, not each device.</li>
+        </ul>
+        <h3>Next steps</h3>
+        <ul class="tick next">
+          <li>ESP32 hardware gateway: current sensing, independent pilot-signal limiter, contactor, signed commands.</li>
+          <li>Validate on real utility data and a hardware-in-the-loop bench.</li>
+          <li>Integrate OCPP, IEC 61850, DNP3 and PMU data.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <b>Note:</b> simulation-based. Model parameters are illustrative and the 2040 charger counts come from our own model; this is not a validated power-system study. &nbsp;
+    <b>References:</b> CISA alert IR-ALERT-H-16-056-01 (Ukraine 2015) · Anderson Economic Group and NRC, <i>The Economic Impacts of the August 2003 Blackout</i> · IEA, <i>Global EV Outlook 2025</i> · PwC, <i>The future is electric: a strategy for EV adoption in the UAE</i> · Rest of World, <i>UAE emerges as Middle East's EV leader</i> · Arabian Business, Dubai energy demand 2024 · Review of EV Charger Cybersecurity Vulnerabilities, Potential Impacts, and Defenses (MDPI Energies, 2022) · Impact of Electric Vehicles Botnets on the Power Grid (arXiv 2103.09153). Code, model and sources: github.com/RithikhC/Cyberthorn
+  </footer>
+</div>
+</body>
+</html>
