@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/sentinel-logo.svg">
+    <img src="assets/sentinel-logo-light.svg" alt="SENTINEL" width="380">
+  </picture>
+</p>
+
 # SENTINEL
 
 **Live demo: https://rithikhc.github.io/Cyberthorn/**

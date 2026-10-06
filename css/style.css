@@ -9,6 +9,8 @@ a { color: var(--accent); }
 .num, .mono { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
 
 header.top { display: flex; align-items: baseline; gap: 14px; padding: 14px 24px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+header.top { align-items: center; gap: 10px 12px; }
+header.top .logo { display: block; margin-right: -2px; }
 header.top h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: .12em; }
 header.top .sub { color: var(--muted); }
 header.top .links { margin-left: auto; font-size: 13px; }
