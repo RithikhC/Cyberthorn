@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>CYBERTHORN — Per-node trust &amp; fleet containment logic</title>
+<style>
+  @page { margin: 12mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: 'Segoe UI', system-ui, Arial, sans-serif; color: #1b2024; }
+  .wrap { width: 1200px; margin: 0 auto; padding: 24px 0 16px; }
+  h1 { margin: 0; font-size: 30px; letter-spacing: .02em; }
+  .sub { margin: 4px 0 12px; font-size: 17px; color: #5d6670; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 16px; margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 8px; vertical-align: -2px; }
+  svg { display: block; width: 100%; height: auto; }
+</style></head><body><div class="wrap">
+<h1>CYBERTHORN: per-node trust &amp; fleet containment logic</h1>
+<div class="sub">One evaluation cycle (about a 1–2 s tick). Solid arrows are the primary flow; dashed tags show where a branch returns to step 1.</div>
+<div class="legend"><span><i style="background:#2e6ea6"></i>Input & detection</span><span><i style="background:#2e8b5b"></i>Trust scoring</span><span><i style="background:#b9770e"></i>Penalty / throttle</span><span><i style="background:#d6453d"></i>Isolate / critical</span><span><i style="background:#6f55b0"></i>Fleet correlation</span><span><i style="background:#5d6670"></i>Log / suppress</span></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1780" width="1200" height="1780" font-family="'Segoe UI', system-ui, Arial, sans-serif">
+<defs>
+  <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="14" refY="8" orient="auto"><path d="M0,1 L15,8 L0,15 Z" fill="#1b2024"/></marker>
+</defs>
+<rect width="1200" height="1780" fill="#fff"/>
+<rect x="400" y="20" width="400" height="64" rx="10" fill="#e8f1fa" stroke="#2e6ea6" stroke-width="3.5"/>
+<text x="600" y="46" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Read sensor &amp; OCPP inputs</text>
+<text x="600" y="70" font-size="17" fill="#5d6670" text-anchor="middle">tamper · USB class · commanded vs metered kW</text>
+<circle cx="404" cy="22" r="16" fill="#1b2024"/><text x="404" y="29" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+<polygon points="600,118 800,174 600,230 400,174" fill="#fff" stroke="#2e6ea6" stroke-width="3.5"/>
+<text x="600" y="168" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Maintenance</text>
+<text x="600" y="193" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">window active?</text>
+<circle cx="724" cy="136" r="16" fill="#1b2024"/><text x="724" y="143" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<rect x="400" y="264" width="400" height="64" rx="10" fill="#fdf3dc" stroke="#b9770e" stroke-width="3.5"/>
+<text x="600" y="290" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Apply trust-vector penalties</text>
+<text x="600" y="314" font-size="17" fill="#5d6670" text-anchor="middle">tamper −40 · USB −35 · sensor fault −20</text>
+<circle cx="404" cy="266" r="16" fill="#1b2024"/><text x="404" y="273" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+<polygon points="600,362 800,418 600,474 400,418" fill="#fff" stroke="#2e8b5b" stroke-width="3.5"/>
+<text x="600" y="412" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Power discrepancy</text>
+<text x="600" y="437" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">sustained ≥3 samples?</text>
+<circle cx="724" cy="380" r="16" fill="#1b2024"/><text x="724" y="387" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+<rect x="400" y="508" width="400" height="64" rx="10" fill="#e9f4ee" stroke="#2e8b5b" stroke-width="3.5"/>
+<text x="600" y="534" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Compute node trust score</text>
+<text x="600" y="558" font-size="17" fill="#5d6670" text-anchor="middle">clamp 0–100, never increases mid-tick</text>
+<circle cx="404" cy="510" r="16" fill="#1b2024"/><text x="404" y="517" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+<polygon points="600,606 800,662 600,718 400,662" fill="#fff" stroke="#d6453d" stroke-width="3.5"/>
+<text x="600" y="656" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Trust &lt; 30?</text>
+<text x="600" y="681" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">(isolate threshold)</text>
+<circle cx="724" cy="624" r="16" fill="#1b2024"/><text x="724" y="631" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">6</text>
+<polygon points="600,752 800,808 600,864 400,808" fill="#fff" stroke="#b9770e" stroke-width="3.5"/>
+<text x="600" y="802" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Trust &lt; 70?</text>
+<text x="600" y="827" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">(throttle threshold)</text>
+<circle cx="724" cy="770" r="16" fill="#1b2024"/><text x="724" y="777" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">8</text>
+<rect x="400" y="898" width="400" height="64" rx="10" fill="#efeaf8" stroke="#6f55b0" stroke-width="3.5"/>
+<text x="600" y="924" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Record active vector(s)</text>
+<text x="600" y="948" font-size="17" fill="#5d6670" text-anchor="middle">feed into fleet correlator</text>
+<circle cx="404" cy="900" r="16" fill="#1b2024"/><text x="404" y="907" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">11</text>
+<polygon points="600,996 800,1052 600,1108 400,1052" fill="#fff" stroke="#6f55b0" stroke-width="3.5"/>
+<text x="600" y="1046" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">≥3 nodes anomalous</text>
+<text x="600" y="1071" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">within 120 s window?</text>
+<circle cx="724" cy="1014" r="16" fill="#1b2024"/><text x="724" y="1021" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">12</text>
+<rect x="400" y="1132" width="400" height="84" rx="10" fill="#efeaf8" stroke="#6f55b0" stroke-width="3.5"/>
+<text x="600" y="1155.5" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Compute blast radius</text>
+<text x="600" y="1179.5" font-size="17" fill="#5d6670" text-anchor="middle">related nodes × MW per transformer</text>
+<text x="600" y="1203.5" font-size="17" fill="#5d6670" text-anchor="middle">+ time-to-trip projection</text>
+<circle cx="404" cy="1134" r="16" fill="#1b2024"/><text x="404" y="1141" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">14</text>
+<polygon points="600,1240 800,1296 600,1352 400,1296" fill="#fff" stroke="#6f55b0" stroke-width="3.5"/>
+<text x="600" y="1290" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Time-to-trip</text>
+<text x="600" y="1315" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">&lt; 30 s?</text>
+<circle cx="724" cy="1258" r="16" fill="#1b2024"/><text x="724" y="1265" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">15</text>
+<polygon points="600,1386 800,1442 600,1498 400,1442" fill="#fff" stroke="#5d6670" stroke-width="3.5"/>
+<text x="600" y="1436" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Escalation events</text>
+<text x="600" y="1461" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">≥3 within 60 min?</text>
+<circle cx="724" cy="1404" r="16" fill="#1b2024"/><text x="724" y="1411" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">16</text>
+<rect x="400" y="1532" width="400" height="64" rx="10" fill="#e9f4ee" stroke="#2e8b5b" stroke-width="3.5"/>
+<text x="600" y="1558" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Auto-contained</text>
+<text x="600" y="1582" font-size="17" fill="#5d6670" text-anchor="middle">resume monitoring next tick</text>
+<circle cx="404" cy="1534" r="16" fill="#1b2024"/><text x="404" y="1541" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">18</text>
+<rect x="20" y="142" width="280" height="64" rx="10" fill="#eef1f4" stroke="#5d6670" stroke-width="3.5"/>
+<text x="160" y="168" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Suppress tamper signal</text>
+<text x="160" y="192" font-size="17" fill="#5d6670" text-anchor="middle">log INFO only, no penalty</text>
+<rect x="905" y="386" width="270" height="64" rx="10" fill="#fdf3dc" stroke="#b9770e" stroke-width="3.5"/>
+<text x="1040" y="412" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Apply discrepancy penalty</text>
+<text x="1040" y="436" font-size="17" fill="#5d6670" text-anchor="middle">−45 to trust score</text>
+<rect x="905" y="630" width="270" height="64" rx="10" fill="#fbeceb" stroke="#d6453d" stroke-width="3.5"/>
+<text x="1040" y="656" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Isolate node</text>
+<text x="1040" y="680" font-size="17" fill="#5d6670" text-anchor="middle">force relay open: 0 kW</text>
+<circle cx="909" cy="632" r="16" fill="#1b2024"/><text x="909" y="639" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">7</text>
+<rect x="905" y="776" width="270" height="64" rx="10" fill="#fdf3dc" stroke="#b9770e" stroke-width="3.5"/>
+<text x="1040" y="802" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Throttle node</text>
+<text x="1040" y="826" font-size="17" fill="#5d6670" text-anchor="middle">cap at safe AC rate (≈7.4 kW)</text>
+<circle cx="909" cy="778" r="16" fill="#1b2024"/><text x="909" y="785" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">9</text>
+<rect x="20" y="766" width="280" height="84" rx="10" fill="#e9f4ee" stroke="#2e8b5b" stroke-width="3.5"/>
+<text x="160" y="789.5" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Clean tick streak</text>
+<text x="160" y="813.5" font-size="17" fill="#5d6670" text-anchor="middle">≥3 consecutive clean ⇒ recover</text>
+<text x="160" y="837.5" font-size="17" fill="#5d6670" text-anchor="middle">+15 trust/tick (hysteresis)</text>
+<circle cx="24" cy="768" r="16" fill="#1b2024"/><text x="24" y="775" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">10</text>
+<rect x="20" y="1020" width="280" height="64" rx="10" fill="#eef1f4" stroke="#5d6670" stroke-width="3.5"/>
+<text x="160" y="1046" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">Log node-level ticket</text>
+<text x="160" y="1070" font-size="17" fill="#5d6670" text-anchor="middle">isolated incident, no campaign</text>
+<circle cx="24" cy="1022" r="16" fill="#1b2024"/><text x="24" y="1029" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">13</text>
+<rect x="20" y="1264" width="280" height="64" rx="10" fill="#fdf3dc" stroke="#b9770e" stroke-width="3.5"/>
+<text x="160" y="1290" font-size="21" font-weight="700" fill="#1b2024" text-anchor="middle">WARN alert to operator</text>
+<text x="160" y="1314" font-size="17" fill="#5d6670" text-anchor="middle">monitor, no action yet</text>
+<rect x="905" y="1264" width="270" height="64" rx="10" fill="#d6453d" stroke="#d6453d" stroke-width="3.5"/>
+<text x="1040" y="1290" font-size="21" font-weight="700" fill="#fff" text-anchor="middle">CRITICAL alert to operator</text>
+<text x="1040" y="1314" font-size="17" fill="#f1f3f5" text-anchor="middle">substation load trending to trip</text>
+<rect x="905" y="1400" width="270" height="84" rx="10" fill="#8f2620" stroke="#8f2620" stroke-width="3.5"/>
+<text x="1040" y="1423.5" font-size="21" font-weight="700" fill="#fff" text-anchor="middle">MANUAL_LOCKOUT</text>
+<text x="1040" y="1447.5" font-size="17" fill="#f1f3f5" text-anchor="middle">auto-recovery disabled</text>
+<text x="1040" y="1471.5" font-size="17" fill="#f1f3f5" text-anchor="middle">operator reset required</text>
+<circle cx="909" cy="1402" r="16" fill="#1b2024"/><text x="909" y="1409" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">17</text>
+<rect x="350" y="1690" width="240" height="64" rx="10" fill="#2e8b5b"/><text x="470" y="1718" font-size="21" font-weight="700" fill="#fff" text-anchor="middle">Grid stability</text><text x="470" y="1742" font-size="21" font-weight="700" fill="#fff" text-anchor="middle">maintained</text>
+<rect x="610" y="1690" width="240" height="64" rx="10" fill="#2e6ea6"/><text x="730" y="1718" font-size="21" font-weight="700" fill="#fff" text-anchor="middle">Full audit trail</text><text x="730" y="1742" font-size="21" font-weight="700" fill="#fff" text-anchor="middle">logged</text>
+<path d="M600,84 V118" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,230 V264" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="617" y="232" width="42" height="26" rx="13" fill="#fff" stroke="#b33830" stroke-width="2.5"/><text x="638" y="252" font-size="16" font-weight="700" fill="#b33830" text-anchor="middle">NO</text>
+<path d="M600,328 V362" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,474 V508" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="539" y="476" width="42" height="26" rx="13" fill="#fff" stroke="#b33830" stroke-width="2.5"/><text x="560" y="496" font-size="16" font-weight="700" fill="#b33830" text-anchor="middle">NO</text>
+<path d="M600,572 V606" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,718 V752" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="617" y="720" width="42" height="26" rx="13" fill="#fff" stroke="#b33830" stroke-width="2.5"/><text x="638" y="740" font-size="16" font-weight="700" fill="#b33830" text-anchor="middle">NO</text>
+<path d="M600,864 V898" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,962 V996" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,1108 V1132" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="612" y="1105" width="52" height="26" rx="13" fill="#fff" stroke="#1f6e45" stroke-width="2.5"/><text x="638" y="1125" font-size="16" font-weight="700" fill="#1f6e45" text-anchor="middle">YES</text>
+<path d="M600,1216 V1240" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,1352 V1386" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,1498 V1532" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="617" y="1500" width="42" height="26" rx="13" fill="#fff" stroke="#b33830" stroke-width="2.5"/><text x="638" y="1520" font-size="16" font-weight="700" fill="#b33830" text-anchor="middle">NO</text>
+<path d="M600,1596 V1660 H470 V1690" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M600,1660 H730 V1690" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M400,174 H300" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="324" y="133" width="52" height="26" rx="13" fill="#fff" stroke="#1f6e45" stroke-width="2.5"/><text x="350" y="153" font-size="16" font-weight="700" fill="#1f6e45" text-anchor="middle">YES</text>
+<path d="M800,418 H905" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="826.5" y="377" width="52" height="26" rx="13" fill="#fff" stroke="#1f6e45" stroke-width="2.5"/><text x="852.5" y="397" font-size="16" font-weight="700" fill="#1f6e45" text-anchor="middle">YES</text>
+<path d="M1040,450 V492 H600" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M800,662 H905" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="826.5" y="621" width="52" height="26" rx="13" fill="#fff" stroke="#1f6e45" stroke-width="2.5"/><text x="852.5" y="641" font-size="16" font-weight="700" fill="#1f6e45" text-anchor="middle">YES</text>
+<path d="M1175,662 H1188 V930 H800" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M800,808 H905" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="826.5" y="767" width="52" height="26" rx="13" fill="#fff" stroke="#1f6e45" stroke-width="2.5"/><text x="852.5" y="787" font-size="16" font-weight="700" fill="#1f6e45" text-anchor="middle">YES</text>
+<path d="M1040,840 V872 H600" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M400,808 H300" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="329" y="767" width="42" height="26" rx="13" fill="#fff" stroke="#b33830" stroke-width="2.5"/><text x="350" y="787" font-size="16" font-weight="700" fill="#b33830" text-anchor="middle">NO</text>
+<path d="M400,1052 H300" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="329" y="1011" width="42" height="26" rx="13" fill="#fff" stroke="#b33830" stroke-width="2.5"/><text x="350" y="1031" font-size="16" font-weight="700" fill="#b33830" text-anchor="middle">NO</text>
+<path d="M400,1296 H300" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="329" y="1255" width="42" height="26" rx="13" fill="#fff" stroke="#b33830" stroke-width="2.5"/><text x="350" y="1275" font-size="16" font-weight="700" fill="#b33830" text-anchor="middle">NO</text>
+<path d="M160,1328 V1369 H600" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M800,1296 H905" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="826.5" y="1255" width="52" height="26" rx="13" fill="#fff" stroke="#1f6e45" stroke-width="2.5"/><text x="852.5" y="1275" font-size="16" font-weight="700" fill="#1f6e45" text-anchor="middle">YES</text>
+<path d="M1040,1328 V1369 H600" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M800,1442 H905" fill="none" stroke="#1b2024" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="826.5" y="1401" width="52" height="26" rx="13" fill="#fff" stroke="#1f6e45" stroke-width="2.5"/><text x="852.5" y="1421" font-size="16" font-weight="700" fill="#1f6e45" text-anchor="middle">YES</text>
+<rect x="60" y="218" width="200" height="30" rx="15" fill="#fff" stroke="#5d6670" stroke-width="2.5" stroke-dasharray="6 4"/><text x="160" y="239" font-size="16" font-weight="600" fill="#5d6670" text-anchor="middle">↺ back to step 1</text>
+<rect x="60" y="862" width="200" height="30" rx="15" fill="#fff" stroke="#5d6670" stroke-width="2.5" stroke-dasharray="6 4"/><text x="160" y="883" font-size="16" font-weight="600" fill="#5d6670" text-anchor="middle">↺ back to step 1</text>
+<rect x="60" y="1096" width="200" height="30" rx="15" fill="#fff" stroke="#5d6670" stroke-width="2.5" stroke-dasharray="6 4"/><text x="160" y="1117" font-size="16" font-weight="600" fill="#5d6670" text-anchor="middle">↺ back to step 1</text>
+<rect x="915" y="1496" width="250" height="30" rx="15" fill="#fff" stroke="#5d6670" stroke-width="2.5" stroke-dasharray="6 4"/><text x="1040" y="1517" font-size="16" font-weight="600" fill="#5d6670" text-anchor="middle">operator reset → step 1</text>
+<rect x="905" y="1549" width="270" height="30" rx="15" fill="#fff" stroke="#5d6670" stroke-width="2.5" stroke-dasharray="6 4"/><text x="1040" y="1570" font-size="16" font-weight="600" fill="#5d6670" text-anchor="middle">↺ resumes at step 1 next tick</text>
+
+</svg>
+
+</div></body></html>

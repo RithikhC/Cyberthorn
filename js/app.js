@@ -6,7 +6,15 @@
   const n0 = (v) => Math.round(v).toLocaleString('en-US');
   const hh = (h) => String(Math.floor(h)).padStart(2, '0') + ':' + (h % 1 ? '30' : '00');
   const mmss = (t) => 'T+' + String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(Math.floor(t % 60)).padStart(2, '0');
-  const COL = { off: '#e5534b', on: '#4caf7d', warn: '#d9a441', accent: '#7aa2d6' };
+  const PAL = {
+    dark: { off: '#e5534b', on: '#4caf7d', warn: '#d9a441', accent: '#7aa2d6', bad: '#f08a84', nominal: '#4a535c', final: '#a04540',
+      st: ['#5b7a8c', '#e5534b', '#d9a441', '#9a86c9', null, '#555'], ring: ['#2f6b4d', '#d9a441', '#e5534b', '#9a86c9', '#7aa2d6'],
+      land: 'rgba(255,255,255,0.03)', coast: 'rgba(255,255,255,0.14)', idle: 'rgba(138,148,158,0.16)', label: '#b9c0c7', veil: 'rgba(0,0,0,.6)' },
+    light: { off: '#d6453d', on: '#2e8b5b', warn: '#b9770e', accent: '#2e6ea6', bad: '#b33830', nominal: '#9aa4ad', final: '#b33830',
+      st: ['#5f7f93', '#d6453d', '#d98e04', '#7d63c0', null, '#8a949e'], ring: ['#2e8b5b', '#d98e04', '#d6453d', '#7d63c0', '#2e6ea6'],
+      land: 'rgba(27,32,36,0.04)', coast: 'rgba(27,32,36,0.28)', idle: 'rgba(93,102,112,0.30)', label: '#3b434b', veil: 'rgba(255,255,255,.7)' },
+  };
+  let theme = 'dark', COL = PAL.dark;
   const DURATION = 300, T_ATTACK = 30;
 
   /* ----------------------------------------------------------- presets */
@@ -137,39 +145,37 @@
     setBanner('', c.benign ? 'A legitimate surge is under way. Watching whether SENTINEL overreacts.' : '<b>Attack in progress.</b> Chargers are ramping together and SENTINEL is scoring the surge.');
   }
 
-  const STCOL = ['#5b7a8c', '#e5534b', '#d9a441', '#9a86c9', null, '#555'];
   const OUTLINE = [[0.04, 0.88], [0.1, 0.78], [0.2, 0.63], [0.34, 0.56], [0.48, 0.48], [0.6, 0.37], [0.7, 0.24], [0.76, 0.08], [0.83, 0.05], [0.87, 0.16], [0.95, 0.3], [0.96, 0.42], [0.88, 0.54], [0.72, 0.62], [0.6, 0.72], [0.52, 0.92], [0.3, 0.98], [0.1, 0.98]];
-  const RING = ['#2f6b4d', '#d9a441', '#e5534b', '#9a86c9', '#7aa2d6'];
   function drawMap() {
     const cv = $('map'), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
     if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
     const sim = S.view === 'on' ? S.on : S.off;
     ctx.beginPath(); OUTLINE.forEach((p, i) => (i ? ctx.lineTo(p[0] * w, p[1] * h) : ctx.moveTo(p[0] * w, p[1] * h))); ctx.closePath();
-    ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.stroke();
+    ctx.fillStyle = COL.land; ctx.fill(); ctx.strokeStyle = COL.coast; ctx.stroke();
     let last = -1;
     for (let pass = 0; pass < 2; pass++) for (let i = 0; i < sim.n; i++) {
       const st = sim.agentStatus(i);
-      if (st === 4) { if (pass === 0) { ctx.fillStyle = 'rgba(138,148,158,0.16)'; ctx.fillRect(sim.x[i] * w - 0.5, sim.y[i] * h - 0.5, 1.2, 1.2); } continue; }
+      if (st === 4) { if (pass === 0) { ctx.fillStyle = COL.idle; ctx.fillRect(sim.x[i] * w - 0.5, sim.y[i] * h - 0.5, 1.2, 1.2); } continue; }
       const hot = st === 1 || st === 2 || st === 3;
       if ((pass === 0) === hot) continue;
-      if (st !== last) { ctx.fillStyle = STCOL[st]; last = st; }
+      if (st !== last) { ctx.fillStyle = COL.st[st]; last = st; }
       ctx.beginPath(); ctx.arc(sim.x[i] * w, sim.y[i] * h, hot ? 2.2 : 1.7, 0, 6.283); ctx.fill();
     }
     ctx.font = '11.5px system-ui, sans-serif'; ctx.textAlign = 'center';
     G.REGIONS.forEach((r, ri) => {
       const fs = [ri * 2, ri * 2 + 1];
       const tripped = fs.some((f) => sim.F.tripped[f]), worst = Math.max(...fs.map((f) => sim.F.state[f]));
-      ctx.strokeStyle = tripped ? '#e5534b' : RING[worst]; ctx.lineWidth = tripped || worst ? 2 : 1;
+      ctx.strokeStyle = tripped ? COL.off : COL.ring[worst]; ctx.lineWidth = tripped || worst ? 2 : 1;
       ctx.beginPath(); ctx.arc(r.x * w, r.y * h, 20, 0, 6.283); ctx.stroke(); ctx.lineWidth = 1;
-      ctx.fillStyle = tripped ? '#f08a84' : '#b9c0c7'; ctx.fillText(r.name + (tripped ? ' (out)' : ''), r.x * w, r.y * h - 26);
+      ctx.fillStyle = tripped ? COL.bad : COL.label; ctx.fillText(r.name + (tripped ? ' (out)' : ''), r.x * w, r.y * h - 26);
     });
-    if (sim.collapsed) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, w, h); ctx.fillStyle = '#f08a84'; ctx.font = '600 26px system-ui'; ctx.fillText('System collapse', w / 2, h / 2); }
+    if (sim.collapsed) { ctx.fillStyle = COL.veil; ctx.fillRect(0, 0, w, h); ctx.fillStyle = COL.bad; ctx.font = '600 26px system-ui'; ctx.fillText('System collapse', w / 2, h / 2); }
   }
 
   function updateKpis() {
     KP.forEach((p, i) => { $('kOff' + i).textContent = p.f(S.off); $('kOn' + i).textContent = p.f(S.on); });
-    [S.off, S.on].forEach((s, k) => { $((k ? 'kOn' : 'kOff') + '0').style.color = s.fHz < 49.0 ? '#f08a84' : s.fHz < 49.7 ? '#d9a441' : ''; });
+    [S.off, S.on].forEach((s, k) => { $((k ? 'kOn' : 'kOff') + '0').style.color = s.fHz < 49.0 ? COL.bad : s.fHz < 49.7 ? COL.warn : ''; });
     for (let f = 0; f < 14; f++) {
       const tripped = S.on.F.tripped[f], st = S.on.F.state[f];
       chips[f].className = 'chip ' + (tripped ? 'trip' : 's' + st);
@@ -195,7 +201,7 @@
     C.line($('chF'), {
       xMin: 0, xMax: DURATION, yMin: 48.4, yMax: 50.15, yFmt: (v) => v.toFixed(1), xFmt: xf, yLabel: 'Hz', xLabel: xl,
       series: [{ label: 'unprotected', color: COL.off, data: pts(S.off, 'f') }, { label: 'with SENTINEL', color: COL.on, data: pts(S.on, 'f') }],
-      hlines: [{ y: 50, color: '#4a535c' }, { y: 49.0, label: 'load shedding starts (49.0 Hz)', color: COL.warn }, { y: 48.4, label: 'final stage', color: '#a04540' }], vlines: vl,
+      hlines: [{ y: 50, color: COL.nominal }, { y: 49.0, label: 'load shedding starts (49.0 Hz)', color: COL.warn }, { y: 48.4, label: 'final stage', color: COL.final }], vlines: vl,
     });
     const ymax = Math.max(500, ...S.off.hist.dEv, ...S.on.hist.dEv) * 1.1;
     C.line($('chL'), {
@@ -214,8 +220,39 @@
   }
 
   /* ------------------------------------------------------------- boot */
+  const params = new URLSearchParams(location.search);
+  function applyTheme(t) {
+    theme = t === 'light' ? 'light' : 'dark'; COL = PAL[theme];
+    document.documentElement.dataset.theme = theme;
+    $('logo').src = theme === 'light' ? 'assets/sentinel-mark-light.svg' : 'assets/sentinel-mark.svg';
+    $('btnTheme').textContent = theme === 'light' ? 'Dark mode' : 'Light mode';
+    try { localStorage.setItem('sentinel-theme', theme); } catch (e) { /* storage unavailable */ }
+  }
+  let saved = null; try { saved = localStorage.getItem('sentinel-theme'); } catch (e) { /* storage unavailable */ }
+  applyTheme(params.get('theme') || saved || 'dark');
+  $('btnTheme').addEventListener('click', () => { applyTheme(theme === 'light' ? 'dark' : 'light'); draw(true); });
+
   setCtl(BASE);
+  const pi = params.get('preset');
+  if (pi !== null && PRESETS[+pi]) { $('preset').value = pi; setCtl(Object.assign({}, BASE, PRESETS[+pi].cfg)); }
   resetSim();
+  // capture options (used to render poster screenshots): ?preset=N &run=end &map=off &show=dash | cardMap,cardF,... &cols=N
+  if (params.get('map') === 'off') { S.view = 'off'; document.querySelectorAll('#viewSeg button').forEach((x) => x.classList.toggle('on', x.dataset.v === 'off')); }
+  if (params.get('run') === 'end') { while (S.on.t < DURATION) { S.off.step(); S.on.step(); } S.running = false; S.done = true; $('btnRun').textContent = 'Restart'; }
+  const show = params.get('show');
+  if (show) {
+    document.body.classList.add('capture');
+    if (show !== 'dash') {
+      document.body.classList.add('focus');
+      const main = document.querySelector('main'), wrap = document.createElement('div'), ids = show.split(',');
+      wrap.className = 'capwrap'; wrap.style.setProperty('--cols', params.get('cols') || ids.length);
+      ids.forEach((id) => { const el = $(id); if (el) wrap.appendChild(el); });
+      Array.from(main.children).forEach((c) => { c.style.display = 'none'; });
+      main.appendChild(wrap);
+    }
+  }
+  draw(true);
   window.addEventListener('resize', () => draw(true));
+  window.addEventListener('load', () => draw(true));
   requestAnimationFrame(frame);
 })();

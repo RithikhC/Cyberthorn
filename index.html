@@ -10,10 +10,10 @@
 </head>
 <body>
 <header class="top">
-  <img class="logo" src="assets/sentinel-mark.svg" alt="" width="30" height="30">
+  <img class="logo" id="logo" src="assets/sentinel-mark.svg" alt="" width="30" height="30">
   <h1>SENTINEL</h1>
   <span class="sub">Protecting the grid from compromised EV chargers</span>
-  <span class="links"><a href="#intro">Introduction</a><a href="#problem">Problem</a><a href="#demo">Simulation</a><a href="https://github.com/RithikhC/Cyberthorn">GitHub</a></span>
+  <span class="links"><a href="#intro">Introduction</a><a href="#problem">Problem</a><a href="#demo">Simulation</a><a href="https://github.com/RithikhC/Cyberthorn">GitHub</a><button class="btn tbtn" id="btnTheme" type="button">Light mode</button></span>
 </header>
 
 <main>
@@ -72,7 +72,7 @@
 
   <!-- ========================= SIMULATION ========================= -->
   <p class="eyebrow" id="demo" style="margin-top:6px">Simulation</p>
-  <p class="intro">Choose a scenario on the left and press <b>Launch attack</b>.</p>
+  <p class="intro demo-intro">Choose a scenario on the left and press <b>Launch attack</b>.</p>
 
   <div class="status" id="banner">
     <div class="clock num" id="clock">T+00:00</div>
@@ -82,7 +82,7 @@
 
   <div class="layout">
     <!-- controls -->
-    <div class="card ctl">
+    <div class="card ctl" id="cardCtl">
       <h3 class="sec">Scenario</h3>
       <select id="preset" aria-label="Scenario preset"></select>
       <label class="f">Year <b id="lbYear"></b></label><input type="range" id="year" min="2025" max="2050" step="1">
@@ -119,7 +119,7 @@
     <!-- centre -->
     <div>
       <div class="kpis" id="kpis"></div>
-      <div class="card">
+      <div class="card" id="cardMap">
         <canvas id="map" width="900" height="430"></canvas>
         <div class="legend">
           <span><i style="background:#5b7a8c"></i>charging normally</span><span><i style="background:#e5534b"></i>compromised, overdriving</span>
@@ -128,7 +128,7 @@
         </div>
         <div class="legend" style="margin-top:2px">Schematic map. Each dot is a cluster of chargers, not a single unit.</div>
       </div>
-      <div class="card">
+      <div class="card" id="cardLog">
         <h3>Event log</h3>
         <div class="logs">
           <div><div class="cap">Without SENTINEL</div><div class="log" id="logOff"></div></div>
@@ -139,10 +139,10 @@
 
     <!-- right -->
     <div class="col-r">
-      <div class="card"><h3>Grid frequency</h3><canvas id="chF" class="chart tall"></canvas></div>
-      <div class="card"><h3>Charging load above plan</h3><canvas id="chL" class="chart"></canvas></div>
-      <div class="card"><h3>SENTINEL risk score <small>worst feeder</small></h3><canvas id="chR" class="chart" style="height:180px"></canvas></div>
-      <div class="card"><h3>Feeder status <small>with SENTINEL</small></h3>
+      <div class="card" id="cardF"><h3>Grid frequency</h3><canvas id="chF" class="chart tall"></canvas></div>
+      <div class="card" id="cardL"><h3>Charging load above plan</h3><canvas id="chL" class="chart"></canvas></div>
+      <div class="card" id="cardR"><h3>SENTINEL risk score <small>worst feeder</small></h3><canvas id="chR" class="chart" style="height:180px"></canvas></div>
+      <div class="card" id="cardChips"><h3>Feeder status <small>with SENTINEL</small></h3>
         <div class="fgroup">General feeders</div><div class="chips" id="chipsG"></div>
         <div class="fgroup">EV-dense district feeders</div><div class="chips" id="chipsH"></div>
         <div class="legend"><span><i class="sq" style="background:#2f6b4d"></i>normal</span><span><i class="sq" style="background:#d9a441"></i>watch</span><span><i class="sq" style="background:#e5534b"></i>throttle</span><span><i class="sq" style="background:#9a86c9"></i>isolate</span><span><i class="sq" style="background:#7aa2d6"></i>recover</span></div>
