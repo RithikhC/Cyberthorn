@@ -49,8 +49,8 @@
     $('lbA').textContent = Math.round(ctl.a.value * 100) + '% of limit';
     $('lbEnf').textContent = Math.round(ctl.enforceProb.value * 100) + '%';
     $('aNote').textContent = +ctl.a.value > 1
-      ? 'Above 100% the car’s battery management opens its contactor, so the cars drop off and the attack defeats itself.'
-      : 'Held just under what each car’s battery management will accept, so cars do not cut off.';
+      ? 'Above 100% the cars’ battery management disconnects them — the attack defeats itself.'
+      : 'Held just under the battery limit so cars don’t cut off.';
     ctl.region.disabled = ctl.scope.value === 'national';
   }
   $('preset').addEventListener('change', () => { setCtl(Object.assign({}, BASE, PRESETS[+$('preset').value].cfg)); resetSim(); });
@@ -102,7 +102,7 @@
 
   /* ---------------------------------------------------------- panels */
   const KP = [
-    { k: 'Grid frequency', f: (s) => s.fHz.toFixed(2) + ' Hz' },
+    { k: 'Frequency low point', f: (s) => s.metrics.minF.toFixed(2) + ' Hz' },
     { k: 'Charging load above plan', f: (s) => '+' + n0(Math.max(0, s.evLoadMW() - s.E0total)) + ' MW' },
     { k: 'Customers load-shed', f: (s) => n0(s.shedMW) + ' MW' },
     { k: 'Feeders tripped', f: (s) => s.metrics.feederTrips + ' of 14' },
@@ -123,26 +123,23 @@
     const a = S.off.summary(), b = S.on.summary(), c = S.cfg;
     if (c.benign) {
       return b.throttled || b.quarantined
-        ? ['bad', `<b>False alarm.</b> SENTINEL throttled a legitimate surge.`]
-        : ['ok', `<b>No false alarm.</b> The scheduled surge (+${n0(b.peakDeltaMW)} MW) was recognised as legitimate. SENTINEL ${b.watched ? 'only moved to watch' : 'stayed normal'}, throttled nothing and quarantined nothing.`];
+        ? ['bad', '<b>False alarm</b> — SENTINEL throttled a legitimate surge.']
+        : ['ok', `<b>No false alarm</b> — scheduled surge (+${n0(b.peakDeltaMW)} MW) recognised as legitimate; nothing throttled or quarantined.`];
     }
     const harmed = a.shedMW > 0 || a.feederTrips > 0 || a.collapsed;
-    if (a.bmsTrips > 0 && !harmed) return ['ok', `<b>The attack defeated itself.</b> Forcing the rate past the battery limit made ${n0(a.bmsTrips)} cars cut off, so no extra load reached the grid.`];
-    if (!harmed) return ['ok', `<b>No real impact on the grid.</b> Unprotected frequency bottomed out at ${a.minF.toFixed(2)} Hz (+${n0(a.peakDeltaMW)} MW). ${b.throttled ? 'SENTINEL still throttled it within ' + b.detectLatency + ' s.' : 'Not enough connected load to matter. Try a later year, a larger share or night-time.'}`];
-    const parts = [];
-    if (a.shedMW) parts.push(`${n0(a.shedMW)} MW of customers shed (low point ${a.minF.toFixed(2)} Hz)`);
-    if (a.feederTrips) parts.push(`${a.feederTrips} feeder breaker${a.feederTrips > 1 ? 's' : ''} tripped (${n0(a.lossMW)} MW blacked out)`);
+    if (a.bmsTrips > 0 && !harmed) return ['ok', `<b>Attack defeated itself</b> — ${n0(a.bmsTrips)} cars cut off at the battery limit; no extra load reached the grid.`];
+    if (!harmed) return ['ok', `<b>No grid impact</b> — unprotected low point ${a.minF.toFixed(2)} Hz (+${n0(a.peakDeltaMW)} MW).${b.throttled ? ' Throttled in ' + b.detectLatency + ' s.' : ''}`];
     const saved = b.shedMW === 0 && b.feederTrips === 0;
-    return [saved ? 'ok' : 'bad', `<b>${saved ? 'Blackout prevented.' : 'Only partly contained.'}</b> Unprotected: ${parts.join(', ')}. With SENTINEL: low point ${b.minF.toFixed(2)} Hz, ${n0(b.shedMW)} MW shed, ${b.feederTrips} breakers tripped. Throttle started ${b.detectLatency ?? '?'} s after the attack and cut the surge by ${Math.round((1 - b.peakDeltaMW / Math.max(1, a.peakDeltaMW)) * 100)}%.`];
+    return [saved ? 'ok' : 'bad', `<b>${saved ? 'Blackout prevented' : 'Partly contained'}</b> — Unprotected: ${n0(a.shedMW)} MW shed, ${a.feederTrips} breaker trips, ${a.minF.toFixed(2)} Hz low. SENTINEL: ${n0(b.shedMW)} MW shed, ${b.feederTrips} trips, ${b.minF.toFixed(2)} Hz low. Throttle in ${b.detectLatency ?? '?'} s, surge −${Math.round((1 - b.peakDeltaMW / Math.max(1, a.peakDeltaMW)) * 100)}%.`];
   }
   function banner() {
     $('clock').textContent = mmss(S.off.t);
     if (S.done) { const [c, m] = verdict(); return setBanner(c, m); }
     const c = S.cfg, t = S.off.t;
-    if (t === 0) return setBanner('', 'Ready. Press Launch attack to start the clock; the attack begins at T+00:30.');
-    if (t < T_ATTACK) return setBanner('', c.benign ? 'Normal overnight operation. A scheduled charging surge starts at T+00:30.' : 'Normal overnight operation. The botnet fires at T+00:30.');
-    if (S.off.shedMW > 0 || S.off.F.tripped.some((x) => x)) return setBanner('bad', '<b>The unprotected grid is failing:</b> load is being shed and feeder breakers are tripping. The map shows the SENTINEL side.');
-    setBanner('', c.benign ? 'A legitimate surge is under way. Watching whether SENTINEL overreacts.' : '<b>Attack in progress.</b> Chargers are ramping together and SENTINEL is scoring the surge.');
+    if (t === 0) return setBanner('', 'Ready — press <b>Launch attack</b>. The attack starts at T+00:30.');
+    if (t < T_ATTACK) return setBanner('', c.benign ? 'Normal operation — scheduled surge at T+00:30.' : 'Normal operation — attack at T+00:30.');
+    if (S.off.shedMW > 0 || S.off.F.tripped.some((x) => x)) return setBanner('bad', '<b>Unprotected grid failing</b> — load shedding and breaker trips under way.');
+    setBanner('', c.benign ? 'Legitimate surge in progress — watching for a false alarm.' : '<b>Attack in progress</b> — SENTINEL is scoring the surge.');
   }
 
   const OUTLINE = [[0.04, 0.88], [0.1, 0.78], [0.2, 0.63], [0.34, 0.56], [0.48, 0.48], [0.6, 0.37], [0.7, 0.24], [0.76, 0.08], [0.83, 0.05], [0.87, 0.16], [0.95, 0.3], [0.96, 0.42], [0.88, 0.54], [0.72, 0.62], [0.6, 0.72], [0.52, 0.92], [0.3, 0.98], [0.1, 0.98]];
@@ -175,7 +172,7 @@
 
   function updateKpis() {
     KP.forEach((p, i) => { $('kOff' + i).textContent = p.f(S.off); $('kOn' + i).textContent = p.f(S.on); });
-    [S.off, S.on].forEach((s, k) => { $((k ? 'kOn' : 'kOff') + '0').style.color = s.fHz < 49.0 ? COL.bad : s.fHz < 49.7 ? COL.warn : ''; });
+    [S.off, S.on].forEach((s, k) => { $((k ? 'kOn' : 'kOff') + '0').style.color = s.metrics.minF < 49.0 ? COL.bad : s.metrics.minF < 49.7 ? COL.warn : ''; });
     for (let f = 0; f < 14; f++) {
       const tripped = S.on.F.tripped[f], st = S.on.F.state[f];
       chips[f].className = 'chip ' + (tripped ? 'trip' : 's' + st);

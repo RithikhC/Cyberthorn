@@ -3,77 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINEL — live grid attack simulation</title>
-<meta name="description" content="Simulation of a coordinated attack on EV chargers and how SENTINEL throttles it before the grid trips.">
+<title>SENTINEL — EV-charger attack defence</title>
+<meta name="description" content="Live simulation of a coordinated EV-charger attack on the grid, with and without SENTINEL.">
 <link rel="icon" type="image/svg+xml" href="assets/sentinel-mark.svg">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="top">
-  <img class="logo" id="logo" src="assets/sentinel-mark.svg" alt="" width="30" height="30">
-  <h1>SENTINEL</h1>
-  <span class="sub">Protecting the grid from compromised EV chargers</span>
-  <span class="links"><a href="#intro">Introduction</a><a href="#problem">Problem</a><a href="#demo">Simulation</a><a href="https://github.com/RithikhC/Cyberthorn">GitHub</a><button class="btn tbtn" id="btnTheme" type="button">Light mode</button></span>
+  <div class="brand">
+    <img class="logo" id="logo" src="assets/sentinel-mark.svg" alt="" width="34" height="34">
+    <div><h1>SENTINEL</h1><span class="sub">EV-charger attack defence</span></div>
+  </div>
+  <span class="chip-live"><i></i>Live simulation</span>
+  <span class="links"><button class="btn tbtn" id="btnTheme" type="button">Light mode</button><a href="https://github.com/RithikhC/Cyberthorn">GitHub</a></span>
 </header>
 
 <main>
-  <!-- ========================= INTRODUCTION ========================= -->
-  <section class="story" id="intro">
-    <p class="eyebrow">Introduction</p>
-    <h2>Everything runs on the grid</h2>
-    <div class="prose">
-      <p>Almost everything a country does depends on its power grid. Hospitals, water and desalination, air conditioning in a desert climate, metro and traffic systems, airports, ports, banks, telecom networks and data centres all stop within minutes or hours without it. So do factories, refineries and cold-storage warehouses, where an outage means idle production lines and spoiled stock, not just inconvenience.</p>
-      <p>The grid is also shared by everyone. A failure doesn't hit one customer, it hits a whole economy at once, which is why it is treated as critical national infrastructure. That makes it a natural target for anyone who wants to do harm from the outside, whether criminal groups, hostile states or activists, and it has already happened. In December 2015, attackers remotely opened breakers at 30 substations in Ukraine and cut power to about 225,000 customers for several hours. Keeping external actors away from the grid is a national security job as much as an engineering one.</p>
-    </div>
-
-    <h3 class="sub-h">EVs are going mainstream, and so are chargers</h3>
-    <div class="prose">
-      <p>Electric cars are no longer a niche. Worldwide they made up more than 20% of new car sales in 2024, and the IEA expects over 40% by 2030 on current policies. The UAE's national EV policy aims for EVs to be about 10% of the fleet by 2030 and 50% by 2050, and Dubai alone ended 2025 with 47,944 registered EVs.</p>
-      <p>Every EV needs somewhere to plug in, so chargers are multiplying with them: home wall units, public AC posts and DC fast chargers. Dubai had roughly 1,860 public charging points by the end of 2025, and ADNOC and TAQA are aiming for 70,000 charge points in Abu Dhabi by 2030. Each one is a high-power, internet-connected device wired straight into the grid.</p>
-    </div>
-
-    <div class="facts">
-      <div><b class="num">~34 GW</b><span>UAE peak electricity demand, 2024</span></div>
-      <div><b class="num">225,000</b><span>customers cut off by the 2015 Ukraine grid attack</span></div>
-      <div><b class="num">&gt;20%</b><span>of new cars sold worldwide were electric in 2024</span></div>
-      <div><b class="num">70,000</b><span>charge points targeted in Abu Dhabi by 2030</span></div>
-    </div>
-  </section>
-
-  <!-- ========================= PROBLEM STATEMENT ========================= -->
-  <section class="story" id="problem">
-    <p class="eyebrow">Problem statement</p>
-    <h2>Thousands of chargers, one weak point</h2>
-    <div class="problem-grid">
-      <div class="pcard">
-        <h4>Control of chargers is control of load</h4>
-        <p>A charger draws anywhere from about 7 kW at home to 150 kW at a fast-charging station, as much as several houses. An attacker who takes over thousands of them, one by one or through the cloud backend that manages them, doesn't need to touch a power station or a substation. The chargers are the weapon.</p>
-      </div>
-      <div class="pcard">
-        <h4>Easy to compromise, little oversight</h4>
-        <p>Chargers are cheap networked computers placed in car parks, apartment blocks and driveways where nobody inspects them. They come from many manufacturers and operators, running different protocols and software versions. Security requirements differ from company to company and market to market, and there is rarely one baseline every charger must meet before it connects to the grid. Reviews of EV charger security keep finding weaknesses in firmware, web interfaces, billing and remote-management links.</p>
-      </div>
-      <div class="pcard">
-        <h4>Together they can destabilise the grid</h4>
-        <p>A grid has to balance supply and demand every second. If compromised chargers all raise their rate at the same moment, demand jumps faster than power plants can respond. Local feeders overload and trip, and if the jump is large enough, frequency falls until automatic load shedding cuts customers off. The attacker stays just under the rate at which each car's battery management would cut the charge, so the cars keep drawing power, and it works best overnight when most cars are plugged in.</p>
-        <p class="model-note">In our model of a 2040 UAE fleet, roughly 600,000 compromised chargers (about 40% of those installed) are enough to start load shedding nationwide, and about a quarter of the chargers on one EV-dense Dubai feeder can trip its breaker.</p>
-      </div>
-      <div class="pcard">
-        <h4>The economic cost</h4>
-        <p>A blackout costs far more than the electricity not sold: lost production, spoiled food and medicine, stalled ports and transport, interrupted data centres and payments, and the work of restoring the network. For scale, the 2003 Northeast blackout in North America, which was not a cyberattack, left about 50 million people without power and was estimated to cost roughly $6 to 10 billion depending on the study. An attacker also chooses the timing, and can aim at the hours when the grid has the least slack.</p>
-        <p>There is lasting damage too: tourism and investor confidence, and trust in EVs themselves just as the country is trying to move people onto them. We have not modelled UAE-specific costs; these figures are reference points.</p>
-      </div>
-    </div>
-
-    <div class="approach">
-      <b>Our approach.</b> Instead of trying to make every charger unhackable, SENTINEL protects the grid. It watches each feeder for an artificial surge in charging and throttles it before breakers or frequency relays trip. The simulation below runs the <b>same attack twice</b> on a model of the UAE grid, once with no protection and once with SENTINEL.
-    </div>
-  </section>
-
-  <!-- ========================= SIMULATION ========================= -->
-  <p class="eyebrow" id="demo" style="margin-top:6px">Simulation</p>
-  <p class="intro demo-intro">Choose a scenario on the left and press <b>Launch attack</b>.</p>
-
   <div class="status" id="banner">
     <div class="clock num" id="clock">T+00:00</div>
     <div class="msg" id="bannerMsg"></div>
@@ -98,13 +43,12 @@
       <label class="f">Charging rate forced <b id="lbA"></b></label><input type="range" id="a" min="0.5" max="1.15" step="0.01">
       <div class="hint" id="aNote"></div>
       <label class="f">Style</label>
-      <select id="style"><option value="step">All at once</option><option value="ramp">Slow ramp over 90 s</option></select>
-      <label class="chk"><input type="checkbox" id="poisoned"><span>Charging backend is compromised, so the attacker's commands look authorised</span></label>
-      <label class="chk"><input type="checkbox" id="benign"><span>No attack: a legitimate off-peak tariff surge (false-alarm test)</span></label>
+      <select id="style"><option value="step">All at once</option><option value="ramp">Slow ramp (90 s)</option></select>
+      <label class="chk"><input type="checkbox" id="poisoned"><span>Backend compromised (commands look authorised)</span></label>
+      <label class="chk"><input type="checkbox" id="benign"><span>Legitimate tariff surge (no attack)</span></label>
 
       <h3 class="sec">Defence</h3>
-      <label class="f">Chargers SENTINEL can control <b id="lbEnf"></b></label><input type="range" id="enf" min="0.1" max="1" step="0.05">
-      <div class="hint">Share of chargers that sit behind an independent SENTINEL gateway.</div>
+      <label class="f">Chargers SENTINEL controls <b id="lbEnf"></b></label><input type="range" id="enf" min="0.1" max="1" step="0.05">
 
       <div class="btnrow">
         <button class="btn primary" id="btnRun">Launch attack</button>
@@ -122,11 +66,10 @@
       <div class="card" id="cardMap">
         <canvas id="map" width="900" height="430"></canvas>
         <div class="legend">
-          <span><i style="background:#5b7a8c"></i>charging normally</span><span><i style="background:#e5534b"></i>compromised, overdriving</span>
-          <span><i style="background:#d9a441"></i>throttled</span><span><i style="background:#9a86c9"></i>quarantined (slow charge)</span>
-          <span><i style="background:#555"></i>cut off by breaker trip</span>
+          <span><i style="background:#5b7a8c"></i>normal</span><span><i style="background:#e5534b"></i>compromised</span>
+          <span><i style="background:#d9a441"></i>throttled</span><span><i style="background:#9a86c9"></i>quarantined</span>
+          <span><i style="background:#555"></i>breaker tripped</span>
         </div>
-        <div class="legend" style="margin-top:2px">Schematic map. Each dot is a cluster of chargers, not a single unit.</div>
       </div>
       <div class="card" id="cardLog">
         <h3>Event log</h3>
@@ -149,30 +92,8 @@
       </div>
     </div>
   </div>
-
-  <details class="how">
-    <summary>How SENTINEL decides</summary>
-    <div class="cols">
-      <div><h4>Watches the feeder, not the charger</h4><p>It tracks how fast charging load is rising on each feeder and whether it keeps drifting above plan. This works even if the chargers and the charging backend are both compromised.</p></div>
-      <div><h4>Checks requests against what was authorised</h4><p>A charger asking for far more power than the backend scheduled, and many doing it within seconds of each other, is a strong sign of attack. A normal tariff-start surge was scheduled, so it is left alone.</p></div>
-      <div><h4>Throttles in stages</h4><p>Watch, then throttle (force chargers back to their schedule), then isolate (quarantine offenders at a slow 6 A charge), then release gradually. A national coordinator spreads the alert if several feeders are hit at once.</p></div>
-    </div>
-  </details>
-
-  <details class="how sources">
-    <summary>Sources for the figures above</summary>
-    <ul>
-      <li>Ukraine 2015 grid attack (30 substations, about 225,000 customers): <a href="https://www.cisa.gov/news-events/ics-alerts/ir-alert-h-16-056-01">CISA alert IR-ALERT-H-16-056-01</a>.</li>
-      <li>2003 Northeast blackout (about 50 million people; roughly $6 to 10 billion across studies): <a href="https://www.andersoneconomicgroup.com/Portals/0/upload/Doc544.pdf">Anderson Economic Group</a>, <a href="https://www.nrc.gov/docs/ml1113/ml111300584.pdf">The Economic Impacts of the August 2003 Blackout</a>.</li>
-      <li>Global EV sales share (over 20% in 2024, over 40% by 2030 on current policies): <a href="https://www.iea.org/reports/global-ev-outlook-2025/outlook-for-electric-mobility">IEA Global EV Outlook 2025</a>.</li>
-      <li>UAE EV policy targets and Dubai and Abu Dhabi EV and charger counts: <a href="https://www.pwc.com/m1/en/publications/documents/2024/future-is-electric-strategy-ev-adoption-uae.pdf">PwC, The future is electric</a>; <a href="https://restofworld.org/2025/uae-middle-east-ev-leader/">Rest of World</a>.</li>
-      <li>UAE peak demand of about 34 GW and DEWA peak of 10.76 GW (2024): <a href="https://www.arabianbusiness.com/business/energy/dubais-energy-demand-jumps-5-4-in-2024-driven-by-economic-growth-and-population-surge">Arabian Business</a>.</li>
-      <li>EV charger vulnerabilities and botnet studies: <a href="https://www.mdpi.com/1996-1073/15/11/3931">Review of EV Charger Cybersecurity Vulnerabilities, Potential Impacts, and Defenses</a>; <a href="https://arxiv.org/pdf/2103.09153">Impact of Electric Vehicles Botnets on the Power Grid</a>.</li>
-      <li>The 2040 charger counts and thresholds come from our own model with illustrative parameters; see the repository's <code>docs/MODEL.md</code>.</li>
-    </ul>
-  </details>
 </main>
-<footer>Cyberthorn hackathon prototype. Everything here is simulated and the model parameters are illustrative; see the repository for assumptions and sources.</footer>
+<footer>SENTINEL · Cyberthorn 2026 · simulated data, illustrative parameters</footer>
 
 <script src="js/engine.js"></script>
 <script src="js/charts.js"></script>
